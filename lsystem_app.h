@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// (C) Andy Thomason 2012-2014
+// (C) Juanmihd
 //
-// Modular Framework for OpenGLES2 rendering on multiple platforms.
-//
+////////////////////////////////////////////////////////////////////////////////
+
+#include "lsystem.h"
+
 namespace octet {
   /// Scene containing a box with octet.
   class lsystem_app : public app {
@@ -19,11 +21,29 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 
-      material *red = new material(vec4(1, 0, 0, 1));
-      mesh_box *box = new mesh_box(vec3(4));
+      //Adding the floor to the scene (not important, actually, remove by a keystroke)
+      material *green = new material(vec4(0, 1, 0, 1));
+      mesh_box *floor = new mesh_box(vec3(4));
       scene_node *node = new scene_node();
+      node->translate(vec3(0, -15, 0));
+      node->scale(vec3(10, 0.1, 10));
       app_scene->add_child(node);
-      app_scene->add_mesh_instance(new mesh_instance(node, box, red));
+      app_scene->add_mesh_instance(new mesh_instance(node, floor, green));
+
+
+    }
+
+    /// this will receive inputs from the keyboard
+    void keyboard(){
+      //O next step
+
+      //L previous step
+
+      //WSAD control camera
+
+      //TGFH control tree (rotate and up-down)
+
+      //B togles on-off the ground
     }
 
     /// this is called to draw the world
@@ -32,16 +52,14 @@ namespace octet {
       get_viewport_size(vx, vy);
       app_scene->begin_render(vx, vy);
 
+      //Ask for inputs of the keyboard
+      keyboard();
+
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
 
       // draw the scene
       app_scene->render((float)vx / vy);
-
-      // tumble the box  (there is only one mesh instance)
-      scene_node *node = app_scene->get_mesh_instance(0)->get_node();
-      node->rotate(1, vec3(1, 0, 0));
-      node->rotate(1, vec3(0, 1, 0));
     }
   };
 }
