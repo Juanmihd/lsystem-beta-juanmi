@@ -9,14 +9,9 @@
 
 namespace octet{
 
-  /// @brief This is the lsystem class. It will create an object that will control the l_system
+  /// This is the lsystem class. It will create an object that will control the l_system
   class lsystem{
-
-    struct rule{
-      int posSymbol;
-      char *substitution;
-    };
-
+    /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
     struct dupla{
       char *left;
       int size_left;
@@ -24,14 +19,30 @@ namespace octet{
       dynarray<int> size_right;
     };
 
+    /// This struct contain the information for a rule (left side, right side, and in which position of the left side is the symbol to be substituted)
+    struct rule{
+      dynarray<char> left;
+      int pos_symbol;
+      dynarray<char> right;
+    };
+
+    /// This is the initial word that starts the project
     dynarray<char> initial_word;
-    dynarray<dynarray<char>> word;
-    dynarray<dynarray<char>> set_rules;
-    int num_rules;
-    dynarray<int> symbols;
-    dynarray<int> symbols_rev;
+    /// This is an array with all the words obtained by the LSystem
+    dynarray<char> words;
+    /// This array contains the initial positions of each word for a given "iteration". This way going "backwards" and "forward" again it's easy
+    dynarray<int> words_pos_start;
+    /// This is a set of rules, it's just an array of rules with all the rules
+    dynarray<ref<rule>> rules;
+    /// This contain, in each number position, how many rules are by a given symbol
+    dynarray<int> rules_pos_start;
+    /// This is a dictionary of symbols, and asign them a number
+    dictionary<int> symbols;
+    /// Contains the current iteration of the LSystem
     int iteration;
+    /// Array of all the angles
     dynarray<float> ls_angle;
+    /// Array of all the distances
     dynarray<float> ls_distance;
     //Things to handle the file
     dynarray<uint8_t> buffer;
@@ -114,6 +125,7 @@ namespace octet{
 
     ///@brief This will be the whole process of lexer, and parser the LS file
     bool decode_file(){
+      int num_rules;
       dupla new_dupla;
       //Check if the first word is "redefine"
       get_new_dupla_line(new_dupla);
@@ -155,11 +167,11 @@ namespace octet{
         }
       }
       //Read rules
-      set_rules.resize(num_rules);
+      rules.reserve(num_rules);
       while (num_rules > 0){
         get_new_dupla_line(new_dupla);
         --num_rules;
-
+        //Storage the rule!
       }
       return true;
     }
