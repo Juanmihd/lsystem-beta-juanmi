@@ -11,6 +11,12 @@ namespace octet{
 
   /// @brief This is the lsystem class. It will create an object that will control the l_system
   class lsystem{
+
+    struct rule{
+      int posSymbol;
+      char *substitution;
+    };
+
     struct dupla{
       char *left;
       int size_left;
@@ -21,6 +27,7 @@ namespace octet{
     dynarray<char> initial_word;
     dynarray<dynarray<char>> word;
     dynarray<dynarray<char>> set_rules;
+    int num_rules;
     dynarray<int> symbols;
     dynarray<int> symbols_rev;
     int iteration;
@@ -31,13 +38,13 @@ namespace octet{
     char * currentChar;
     int restBuffer;
 
-    /// @brief Get next char and reduce the size of the rest of the buffer
+    /// Get next char and reduce the size of the rest of the buffer
     void next_char(){
       ++currentChar; 
       --restBuffer;
     }
 
-    /// @brief Get the float value from a word
+    /// Get the float value from a word
     float get_float(char *word, int size_word){
       float number = 0;
       int decimal = -1;
@@ -64,11 +71,8 @@ namespace octet{
       return number;
     }
 
-    ///@brief This function check if a char is the left part of the dupla is equal to a given char
-    ///@param new_dupla The dupla to be checked
-    ///@param word2   The word to be compared
-    ///@param size  The size of the word to be compared
-    ///@return True if equal and false if different
+    /// This function check if a char is the left part of the dupla is equal to a given char
+    ///   It receives a dupla and also the word it like to be compared into, with the size of the word, and it returns true if equal or false if different
     bool left_side_is(dupla new_dupla, char *word2, int size){
       bool equal = new_dupla.size_left == size;
       for (int i = 0; i < size && equal; ++i){
@@ -111,9 +115,6 @@ namespace octet{
     ///@brief This will be the whole process of lexer, and parser the LS file
     bool decode_file(){
       dupla new_dupla;
-      restBuffer = buffer.size();
-      currentChar = (char*) buffer.data();
-
       //Check if the first word is "redefine"
       get_new_dupla_line(new_dupla);
       if (left_side_is(new_dupla,"redefine",8)){
@@ -130,11 +131,36 @@ namespace octet{
         get_new_dupla_line(new_dupla);
       }
       //Process distances
-
+      if (left_side_is(new_dupla, "distance", 8)){
+        //process distance
+        int sizeDistances = new_dupla.right.size();
+        for (int i = 0; i < sizeDistances; ++i){
+          ls_distance.push_back(get_float(new_dupla.right[i], new_dupla.size_right[i]));
+        }
+        get_new_dupla_line(new_dupla);
+      }
       //Read initial axiom
+      if (left_side_is(new_dupla, "initial", 7)){
+        for (int i = 0; i < new_dupla.size_left; ++i){
+          initial_word.push_back(new_dupla.left[i]);
+        }
+        get_new_dupla_line(new_dupla);
+      }
       //Read number and type of rules
+      if (left_side_is(new_dupla, "rules", 5)){
+        int numInfo = new_dupla.right.size();
+        num_rules = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        for (int i = 1; i < numInfo; ++i){
+          //Check what type of info i'm adding to the system, and set it up
+        }
+      }
       //Read rules
-      
+      set_rules.resize(num_rules);
+      while (num_rules > 0){
+        get_new_dupla_line(new_dupla);
+        --num_rules;
+
+      }
       return true;
     }
 
@@ -143,6 +169,8 @@ namespace octet{
 
     bool load_file(char * file_name){
       dynarray<uint8_t> buffer;
+      restBuffer = buffer.size();
+      currentChar = (char*)buffer.data();
       app_utils::get_url(buffer, file_name);
       return decode_file();
     }
