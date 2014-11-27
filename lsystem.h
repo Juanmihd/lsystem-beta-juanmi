@@ -61,10 +61,18 @@ namespace octet{
     void copy_rule(rule *new_rule, const dupla &dupla){
       //Every rule is a "simple rule", SYMBOL:RULE
       //Copy right part
-
+      int size_rule = dupla.size_right[0];
+      for (int i = 0; i < size_rule; ++i){
+        new_rule->right.push_back(dupla.right[0][i]);
+      }
       //But it may also be a "complex rule", SYMBOL:RULE CONTEXT POS_CONTEXT ITERATION PROBABILITY
       if (dupla.right.size() > 1){
         //To fill later
+      }
+      else{
+        new_rule->pos_in_context = -1;
+        new_rule->iteration = -1;
+        new_rule->probability = 1.0f;
       }
     }
 
