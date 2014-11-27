@@ -10,9 +10,9 @@
 namespace octet{
 
   /// This is the lsystem class. It will create an object that will control the l_system
-  class lsystem{
+  class lsystem : public resource{
     /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
-    struct dupla{
+    struct dupla : public resource{
       char *left;
       int size_left;
       dynarray<char *> right;
@@ -20,7 +20,7 @@ namespace octet{
     };
 
     /// This struct contain the information for a rule (left side, right side, and in which position of the left side is the symbol to be substituted)
-    struct rule{
+    struct rule : public resource{
       dynarray<char> right;
       dynarray<char> context;
       int pos_in_context;
@@ -128,7 +128,8 @@ namespace octet{
       next_char();
       char *new_right = currentChar;
       int size_new_right = 0;
-      while (*currentChar != '\n' && restBuffer > 0){
+      while (*currentChar != 0x0D && restBuffer > 0){
+        printf("%x,", *currentChar);
         if (*currentChar == 0x20){
           next_char();
           new_dupla.right.push_back(new_right);
@@ -141,7 +142,21 @@ namespace octet{
         next_char();
       }
       next_char();
+      printf_dupla(new_dupla);
       return restBuffer > 0;
+    }
+
+    void printf_dupla(const dupla &dupla_){
+      for (int i = 0; i < dupla_.size_left; ++i){
+        printf("%c", dupla_.left[i]);
+      }
+      printf(":");
+      for (int i = 0; i < dupla_.right.size(); ++i){
+        for (int j = 0; j < dupla_.size_right[i]; ++j){
+          printf("%c", dupla_.right[i][j]);
+        }
+        printf(" ");
+      }
     }
 
     ///@brief This will be the whole process of lexer, and parser the LS file
@@ -223,10 +238,12 @@ namespace octet{
 
     bool load_file(char * file_name){
       dynarray<uint8_t> buffer;
+      app_utils::get_url(buffer, file_name);
       restBuffer = buffer.size();
       currentChar = (char*)buffer.data();
-      app_utils::get_url(buffer, file_name);
-      return decode_file();
+      printf("Reading file!");
+      bool no_error = decode_file();
+      return no_error;
     }
   };
 

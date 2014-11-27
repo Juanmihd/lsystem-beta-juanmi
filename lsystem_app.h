@@ -11,6 +11,8 @@ namespace octet {
   class lsystem_app : public app {
     // scene for drawing box
     ref<visual_scene> app_scene;
+    dynarray<ref<lsystem>> lsystems;
+
   public:
     /// this is called when we construct the class before everything is initialised.
     lsystem_app(int argc, char **argv) : app(argc, argv) {
@@ -30,7 +32,9 @@ namespace octet {
       app_scene->add_child(node);
       app_scene->add_mesh_instance(new mesh_instance(node, floor, green));
 
-
+      ref<lsystem> system1 = new lsystem();
+      system1->load_file("assets/lsystem/tree_a.ls");
+      lsystems.push_back(system1);
     }
 
     /// this will receive inputs from the keyboard
