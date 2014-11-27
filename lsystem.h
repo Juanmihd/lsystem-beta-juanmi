@@ -21,9 +21,11 @@ namespace octet{
 
     /// This struct contain the information for a rule (left side, right side, and in which position of the left side is the symbol to be substituted)
     struct rule{
-      dynarray<char> left;
-      int pos_symbol;
       dynarray<char> right;
+      dynarray<char> context;
+      int pos_in_context;
+      int iteration;
+      float probability;
     };
 
     /// This is the initial word that starts the project
@@ -53,6 +55,17 @@ namespace octet{
     void next_char(){
       ++currentChar; 
       --restBuffer;
+    }
+    
+    /// Copies the rupla contained into the dupla into the new_rule
+    void copy_rule(rule *new_rule, const dupla &dupla){
+      //Every rule is a "simple rule", SYMBOL:RULE
+      //Copy right part
+
+      //But it may also be a "complex rule", SYMBOL:RULE CONTEXT POS_CONTEXT ITERATION PROBABILITY
+      if (dupla.right.size() > 1){
+        //To fill later
+      }
     }
 
     /// Get the float value from a word
@@ -151,6 +164,19 @@ namespace octet{
         }
         get_new_dupla_line(new_dupla);
       }
+      //Read symbols
+      if (left_side_is(new_dupla, "symbols", 7)){
+        dynarray<char> symbol;
+        symbol.resize(2);
+        int num_symbols = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        for (int i = 0; i < num_symbols; ++i){
+          get_new_dupla_line(new_dupla);
+          symbol[0] = new_dupla.left[0];
+          symbol[1] = '\0';
+          symbols[symbol.data()] = i;
+        }
+        get_new_dupla_line(new_dupla);
+      }
       //Read initial axiom
       if (left_side_is(new_dupla, "initial", 7)){
         for (int i = 0; i < new_dupla.size_left; ++i){
@@ -165,13 +191,21 @@ namespace octet{
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
         }
-      }
-      //Read rules
-      rules.reserve(num_rules);
-      while (num_rules > 0){
-        get_new_dupla_line(new_dupla);
-        --num_rules;
-        //Storage the rule!
+        //Read rules
+        dynarray<char> symbol;
+        symbol.resize(2);
+        rules.reserve(num_rules);
+        while (num_rules > 0){
+          get_new_dupla_line(new_dupla);
+          --num_rules;
+          //Create the rule!
+          ref<rule> new_rule = new rule;
+          
+          //Storage the rule!
+          symbol[0] = new_dupla.left[0];
+          symbol[1] = '\0';
+          
+        }
       }
       return true;
     }
