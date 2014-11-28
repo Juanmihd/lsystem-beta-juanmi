@@ -29,18 +29,12 @@ namespace octet{
       float probability;
     };
 
-    /// This is the initial word that starts the project
-    dynarray<char> initial_word;
     /// This is an array with all the words obtained by the LSystem
-    dynarray<char> words;
-    /// This array contains the initial positions of each word for a given "iteration". This way going "backwards" and "forward" again it's easy
-    dynarray<int> words_pos_start;
+    dynarray<dynarray<char>> words;
     /// This is a set of rules, it's just an array of rules with all the rules
-    dynarray<ref<rule>> rules;
-    /// This contain, in each number position, how many rules are by a given symbol
-    dynarray<int> rules_pos_start;
+    dynarray<dynarray<ref<rule>>> rules;
     /// This is a dictionary of symbols, and asign them a number
-    dictionary<int> symbols;
+    dictionary<int> alphabet;
     /// Contains the current iteration of the LSystem
     int cur_iteration;
     /// Max iteration calculated
@@ -111,7 +105,7 @@ namespace octet{
 
     /// This function check if a char is the left part of the dupla is equal to a given char
     ///   It receives a dupla and also the word it like to be compared into, with the size of the word, and it returns true if equal or false if different
-    bool left_side_is(dupla new_dupla, char *word2, int size){
+    bool left_side_is(const dupla &new_dupla, char *word2, int size){
       bool equal = new_dupla.size_left == size;
       for (int i = 0; i < size && equal; ++i){
         equal = new_dupla.left[i] == word2[i];
@@ -172,9 +166,28 @@ namespace octet{
       printf("\n");
     }
 
+    /// Print the initial word
+    void printf_word(int num){
+      for (int i = 0; i < words[num].size(); ++i){
+        printf("%c", words[num][i]);
+      }
+      printf("\n");
+    }
+
+    /// Print the set of rules
+    void printf_rules(){
+      for (int i = 0; i < rules.size(); ++i){
+        for (int j = 0; j < rules[i].size(); ++j){
+          printf("%s", rules[i][j]->right.data());
+        }
+        printf("\n");
+      }
+      printf("End rules\n");
+    }
+
     /// This will be the whole process of lexer, and parser the LS file
     bool decode_file(){
-      int num_rules;
+      int size_rules;
       dupla new_dupla;
       //Check if the first word is "redefine"
       get_new_dupla_line(new_dupla);
@@ -204,6 +217,7 @@ namespace octet{
       if (left_side_is(new_dupla, "iteration", 9)){
         //Process num
         ini_iteration = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        get_new_dupla_line(new_dupla);
       }
       //Read symbols
       if (left_side_is(new_dupla, "symbols", 7)){
@@ -214,49 +228,85 @@ namespace octet{
           get_new_dupla_line(new_dupla);
           symbol[0] = new_dupla.left[0];
           symbol[1] = '\0';
-          symbols[symbol.data()] = i;
+          alphabet[symbol.data()] = i;
         }
         get_new_dupla_line(new_dupla);
       }
       //Read initial axiom
       if (left_side_is(new_dupla, "initial", 7)){
-        for (int i = 0; i < new_dupla.size_left; ++i){
-          initial_word.push_back(new_dupla.left[i]);
+        words.resize(ini_iteration+5);
+        words[0].reserve(5);
+        for (int i = 0; i < new_dupla.size_right[0]; ++i){
+          words[0].push_back(new_dupla.right[0][i]);
         }
         get_new_dupla_line(new_dupla);
       }
       //Read number and type of rules
       if (left_side_is(new_dupla, "rules", 5)){
         int numInfo = new_dupla.right.size();
-        num_rules = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        size_rules = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        rules.resize(size_rules);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
         }
         //Read rules
         dynarray<char> symbol;
         symbol.resize(2);
-        rules.reserve(num_rules);
-        while (num_rules > 0){
+        rules.reserve(size_rules);
+        while (size_rules > 0){
           get_new_dupla_line(new_dupla);
-          --num_rules;
+          --size_rules;
           //Create the rule!
-          ref<rule> new_rule = new rule;
-          
+          rule *new_rule = new rule;
+          copy_rule(new_rule, new_dupla);
           //Storage the rule!
           symbol[0] = new_dupla.left[0];
           symbol[1] = '\0';
-          
+          int aux = alphabet[symbol.data()];
+          printf("%i\n", rules[aux].size());
+          rules[aux].push_back(new_rule);
         }
       }
       return true;
     }
 
-    /// Generates the next iteration of the l_system
-    void gen_next_iteration(){
-      ++max_iteration;
-      if (max_iteration > words_pos_start.size()){
-        words_pos_start.reserve(max_iteration + 5);
+    ///Will generate the tree to the initial generation. The starting point is max_iteration = 0, and cur_iteration = 0, with ini_iteration the objective
+    void ini_generation(){
+      for (int i = 1; i <= ini_iteration; ++i){
+        produce_next_word(words[i], words[i-1]);
+        if(DEBUG_LS_GEN) printf_word(i);
       }
+      cur_iteration = ini_iteration;
+      max_iteration = ini_iteration;
+    }
+
+    /// Generates the next iteration of the l_system given a input
+    void produce_next_word(dynarray<char> &output, const dynarray<char> &input){
+      int size_input = input.size();
+      output.reserve(size_input * 2);
+      for (int i = 0; i < size_input; ++i){
+        char symbol[2];
+        symbol[0] = input[i];
+        symbol[1] = '\0';
+        if (!alphabet.contains(symbol)){
+          output.push_back(input[i]);
+        }
+        else{
+          int value_symbol = alphabet[symbol];
+          rule * cur_rule = rules[value_symbol][0];
+          for (int i_rule = 0; i_rule < cur_rule->right.size(); ++i_rule){
+            output.push_back(cur_rule->right[i_rule]);
+          }
+        }
+      }
+    }
+
+    /// Obtains next word
+    void generate_new_word(){
+      if (words.size() < cur_iteration)
+        words.reserve(cur_iteration + 5);
+      produce_next_word(words[cur_iteration], words[max_iteration]);
+      ++max_iteration;
     }
 
   public:
@@ -271,32 +321,38 @@ namespace octet{
       cur_iteration = 0;
       max_iteration = 0;
       currentChar = (char*)buffer.data();
-      printf("Reading file!");
       bool no_error = decode_file();
-      go_to(ini_iteration);
+      ini_generation();
       return no_error;
     }
 
     /// Go to a given iteration of the l_system
     void go_to(int obj_iteration){
       while (cur_iteration < obj_iteration)
-        operator++();
+        next();
       while (cur_iteration > obj_iteration)
-        operator--();
+        previous();
     }
     
     /// Go to the next iteration of the l_system
-    void operator++(){
+    void next(){
       ++cur_iteration;
-      if (cur_iteration > max_iteration)
-        gen_next_iteration();
-      //do something to go to the next iteration
+      if (cur_iteration > max_iteration){
+        generate_new_word();
+        printf("Generating new word\n");
+      }
     }
 
     /// Go to the previous iteration of the l_system
-    void operator--(){
+    void previous(){
       --cur_iteration;
-      //do something to go to the previos stored iteration
+    }
+
+    /// Print the current iteration
+    void print(){
+      printf("Current iteration %i\n", cur_iteration);
+      printf_word(cur_iteration);
+      printf("\n");
     }
   };
 
