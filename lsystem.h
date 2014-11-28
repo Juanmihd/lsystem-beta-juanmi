@@ -314,7 +314,6 @@ namespace octet{
 
     /// Load the file given by the name to the current l_system. It will initialize it to the current representation
     bool load_file(char * file_name){
-      dynarray<uint8_t> buffer;
       app_utils::get_url(buffer, file_name);
       restBuffer = buffer.size();
       ini_iteration = 0;
