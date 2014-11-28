@@ -86,13 +86,14 @@ namespace octet{
           decimal = 0;
         }
         else{
-          number = 10 * number + *word;
+          number = 10 * number + (*word - 0x30);
         }
         ++word;
       }
       if (decimal == 0){
         for (; current_pos < size_word; ++current_pos){
-          number = 10 * number + *word;
+          number = 10 * number + (*word - 0x30);
+          ++decimal;
           ++word;
         }
 
@@ -100,6 +101,7 @@ namespace octet{
           number = number / 10;
         }
       }
+      printf("Float number: -> %f\n", number);
       return number;
     }
 
@@ -129,7 +131,6 @@ namespace octet{
       char *new_right = currentChar;
       int size_new_right = 0;
       while (*currentChar != 0x0D && restBuffer > 0){
-        printf("%x,", *currentChar);
         if (*currentChar == 0x20){
           next_char();
           new_dupla.right.push_back(new_right);
@@ -141,7 +142,13 @@ namespace octet{
           ++size_new_right;
         next_char();
       }
+      if (size_new_right != 0){
+        new_dupla.right.push_back(new_right);
+        new_dupla.size_right.push_back(size_new_right);
+      }
       next_char();
+      if (*currentChar == 0x0A)
+        next_char();
       printf_dupla(new_dupla);
       return restBuffer > 0;
     }
@@ -157,6 +164,7 @@ namespace octet{
         }
         printf(" ");
       }
+      printf("\n");
     }
 
     ///@brief This will be the whole process of lexer, and parser the LS file
@@ -166,7 +174,7 @@ namespace octet{
       //Check if the first word is "redefine"
       get_new_dupla_line(new_dupla);
       if (left_side_is(new_dupla,"redefine",8)){
-        //process redefine
+        //process redefine (TODO!!!)
         get_new_dupla_line(new_dupla);
       }
       //Process angles
