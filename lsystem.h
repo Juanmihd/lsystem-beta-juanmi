@@ -11,6 +11,7 @@ namespace octet{
 
   /// This is the lsystem class. It will create an object that will control the l_system
   class lsystem : public resource{
+    enum { DEBUG_LS_PARSER = 0, DEBUG_LS_GEN = 0, DEBUG_LS_DRAW = 0 };
     /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
     struct dupla : public resource{
       char *left;
@@ -41,7 +42,11 @@ namespace octet{
     /// This is a dictionary of symbols, and asign them a number
     dictionary<int> symbols;
     /// Contains the current iteration of the LSystem
-    int iteration;
+    int cur_iteration;
+    /// Max iteration calculated
+    int max_iteration;
+    /// Initial iteration;
+    int ini_iteration;
     /// Array of all the angles
     dynarray<float> ls_angle;
     /// Array of all the distances
@@ -101,7 +106,6 @@ namespace octet{
           number = number / 10;
         }
       }
-      printf("Float number: -> %f\n", number);
       return number;
     }
 
@@ -149,10 +153,11 @@ namespace octet{
       next_char();
       if (*currentChar == 0x0A)
         next_char();
-      printf_dupla(new_dupla);
+      if(DEBUG_LS_PARSER) printf_dupla(new_dupla);
       return restBuffer > 0;
     }
 
+    /// This funcion receives a dupla and prints it out
     void printf_dupla(const dupla &dupla_){
       for (int i = 0; i < dupla_.size_left; ++i){
         printf("%c", dupla_.left[i]);
@@ -167,7 +172,7 @@ namespace octet{
       printf("\n");
     }
 
-    ///@brief This will be the whole process of lexer, and parser the LS file
+    /// This will be the whole process of lexer, and parser the LS file
     bool decode_file(){
       int num_rules;
       dupla new_dupla;
@@ -194,6 +199,11 @@ namespace octet{
           ls_distance.push_back(get_float(new_dupla.right[i], new_dupla.size_right[i]));
         }
         get_new_dupla_line(new_dupla);
+      }
+      //Process num iteration
+      if (left_side_is(new_dupla, "iteration", 9)){
+        //Process num
+        ini_iteration = get_float(new_dupla.right[0], new_dupla.size_right[0]);
       }
       //Read symbols
       if (left_side_is(new_dupla, "symbols", 7)){
@@ -241,17 +251,52 @@ namespace octet{
       return true;
     }
 
+    /// Generates the next iteration of the l_system
+    void gen_next_iteration(){
+      ++max_iteration;
+      if (max_iteration > words_pos_start.size()){
+        words_pos_start.reserve(max_iteration + 5);
+      }
+    }
+
   public:
     lsystem(){}
 
+    /// Load the file given by the name to the current l_system. It will initialize it to the current representation
     bool load_file(char * file_name){
       dynarray<uint8_t> buffer;
       app_utils::get_url(buffer, file_name);
       restBuffer = buffer.size();
+      ini_iteration = 0;
+      cur_iteration = 0;
+      max_iteration = 0;
       currentChar = (char*)buffer.data();
       printf("Reading file!");
       bool no_error = decode_file();
+      go_to(ini_iteration);
       return no_error;
+    }
+
+    /// Go to a given iteration of the l_system
+    void go_to(int obj_iteration){
+      while (cur_iteration < obj_iteration)
+        operator++();
+      while (cur_iteration > obj_iteration)
+        operator--();
+    }
+    
+    /// Go to the next iteration of the l_system
+    void operator++(){
+      ++cur_iteration;
+      if (cur_iteration > max_iteration)
+        gen_next_iteration();
+      //do something to go to the next iteration
+    }
+
+    /// Go to the previous iteration of the l_system
+    void operator--(){
+      --cur_iteration;
+      //do something to go to the previos stored iteration
     }
   };
 
