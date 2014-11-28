@@ -15,8 +15,6 @@ namespace octet {
     dynarray<ref<lsystem>> lsystems;
     int cur_lsystem;
 
-    ///stack for the turtle position when generating blocks
-    dynarray<mesh::vertex> stack3d;
   public:
     /// this is called when we construct the class before everything is initialised.
     lsystem_app(int argc, char **argv) : app(argc, argv) {
