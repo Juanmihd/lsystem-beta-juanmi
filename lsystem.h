@@ -360,6 +360,26 @@ namespace octet{
       return words[cur_iteration].data();
     }
 
+    int get_size_word(){
+      return words[cur_iteration].size();
+    }
+
+    float get_angle(){
+      return ls_angle[0];
+    }
+
+    float get_distance(){
+      return ls_distance[0];
+    }
+
+    float set_angle(float angle_){
+      ls_angle[0] = angle_;
+    }
+
+    float set_distance(float distance_){
+      ls_distance[0] = distance_;
+    }
+
     /// Print the current iteration
     void print(){
       printf("Current iteration %i\n", cur_iteration);

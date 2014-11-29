@@ -70,6 +70,7 @@ namespace octet {
       for (int i = 0; i < 10; ++i){
         temp_mesh = new lsystem_mesh;
         lsystem_meshes.push_back(temp_mesh);
+        lsystem_meshes[i]->init_values(lsystems[i]->get_angle(), lsystems[i]->get_distance());
       }
     }
 
@@ -153,6 +154,7 @@ namespace octet {
       else if (is_key_going_down('V')){
         int i = lsystems[cur_lsystem]->get_iteration();
         printf("Reading iteration %i with the word \n%s\n", i, lsystems[cur_lsystem]->get_word());
+        lsystem_meshes[cur_lsystem]->input_word(lsystems[i]->get_iteration(),lsystems[i]->get_word(),lsystems[i]->get_size_word());
       }
     }
 
