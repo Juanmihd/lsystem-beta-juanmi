@@ -344,7 +344,20 @@ namespace octet{
 
     /// Go to the previous iteration of the l_system
     void previous(){
-      --cur_iteration;
+      if (cur_iteration > 0)
+        --cur_iteration;
+      else
+        printf("Cannot go before the iteration number 0!\n");
+    }
+
+    /// Returns the current iteration
+    int get_iteration(){
+      return cur_iteration;
+    }
+
+    ///Return the current word
+    char *get_word(){
+      return words[cur_iteration].data();
     }
 
     /// Print the current iteration
