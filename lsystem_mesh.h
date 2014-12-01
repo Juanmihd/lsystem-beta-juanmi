@@ -5,35 +5,41 @@
 namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1};
+    enum {PRECISION_CYLINDER = 10, R_INIT = 10};
     class lsystem_mesh : public mesh{
       ///Each one of the elements to be drawed with the lsystem
-      struct block : public resource{
-        vec3 origin;
-        vec3 next;
-        float angle_X;
-        float angle_Y;
-        float distance;
-        int precision;
-        float r1;
-        float r2;
+      struct Block : public resource{
+        mat4t origin;
+        mat4t next;
+        float radio;
       };
 
-      struct turtle3D : public resource{
-        vec3 position;
+      struct Turtle3D : public resource{
+        mat4t pos;
         mat4t transform;
+        float radio;
       };
 
+      void printf_mat4t(mat4t & mat){
+        for (unsigned i = 0; i != 4; ++i){
+          for (unsigned j = 0; j != 4; ++j){
+            mat.
+          }
+        }
+      }
+      
       ///info for each one of the lsystem generated
-      dynarray<dynarray<ref<block>>> blocks;
+      dynarray<dynarray<ref<Block>>> blocks;
       float angle_X;
       float angle_Y;
       float distance;
       float r_init;
+      float precision;
       dynarray<status_ls> ls_generated;
       int cur_iteration;
       bool visualize3D;
       ///stack for the turtle position when generating blocks
-      dynarray<ref<turtle3D>> stack3d;
+      dynarray<ref<Turtle3D>> stack3d;
 
     public:
       lsystem_mesh(){
@@ -45,7 +51,8 @@ namespace octet{
         angle_Y = 0;
         angle_X = 0;
         distance = 1;
-        r_init = 10;
+        r_init = R_INIT;
+        precision = PRECISION_CYLINDER;
       }
 
       void init_values(float angle_, float distance_){
@@ -73,7 +80,7 @@ namespace octet{
         //check if it has been already generated
         cur_iteration = iteration;
         if (ls_generated[iteration] != _NONE){ //already generated
-          printf("Nothing to generate here. \n");
+          printf("Nothing to generate here. But it may be needed to update!\n");
         }
         else{ //generate new set of blocks
           ls_generated[iteration] = _GENERATED;
@@ -89,46 +96,57 @@ namespace octet{
           unsigned isize = 3 * 6 * num_symbols * sizeof(uint32_t);
           mesh::allocate(vsize, isize);
           
-          //Generate initial block
-          turtle3D *origin;
-          origin->position = vec3(0);
-          origin->transform.loadIdentity();
-          origin->transform.translate(0, distance, 0);
-          stack3d.push_back(origin);
-
           //Set up the generation
-          block *new_block;
-          if (blocks.size() < iteration){
+          if (blocks.size() < (unsigned) iteration){
             blocks.resize(iteration + 1);
           }
           blocks[iteration].reserve(num_symbols);
-          
+
+          //Generate initial stack for turtle3D
+          Turtle3D * back_stack = new Turtle3D();
+          back_stack->pos.loadIdentity();
+          back_stack->radio = r_init;
+          back_stack->transform.loadIdentity();
+          back_stack->transform.translate(0, distance, 0);
+          stack3d.push_back(back_stack);
+          Block *new_block;
+
           //Start generation
           for (int i = 0; i < size_word; ++i){
-            turtle3D * current_top = stack3d.back();
             char symbol = word[i];
+            printf("%c ", symbol);
             switch (symbol){
             case 'F':
-              mat4t next_transformation;
-              new_block = new block();
-              new_block->origin = current_top->position;
-              new_block->next = new_block->origin;
-                //Apply trans
+              //Reserve new block
+              new_block = new Block();
+              new_block->origin = back_stack->pos;
+              back_stack->pos.multMatrix(back_stack->transform);
+              new_block->next = back_stack->pos;
+              new_block->radio = back_stack->radio;
               blocks[iteration].push_back(new_block);
               break;
             case '[':
+              back_stack = new Turtle3D();
+              back_stack->pos = stack3d.back()->pos;
+              back_stack->transform = stack3d.back()->transform;
+              back_stack->radio = stack3d.back()->radio;
+              back_stack->pos.multMatrix(back_stack->transform);
+              stack3d.push_back(back_stack);
+              back_stack = stack3d.back();
               break;
             case ']':
+              stack3d.pop_back();
               break;
             case '+':
+              back_stack->transform.rotateX(angle_X);
               break;
             case '-':
+              back_stack->transform.rotateX(-angle_X);
               break;
             }
           }//End for generation of blocks
           printf("Generated %i new blocks for tree\n",blocks[iteration].size());
         }//End else generate new set of blocks
-
       }
 
       void update(){
@@ -140,13 +158,14 @@ namespace octet{
           uint32_t *idx = ilock.u32();
           unsigned num_vertices = 0;
           unsigned num_indices = 0;
+          
+          //Draw circle with the first origin
 
-          for (unsigned i = 0; i != blocks[cur_iteration].size(); ++i){
-            block *block_ = blocks[cur_iteration][i];
-            if (block_->enable){
-              
-            }
-          }
+          //Draw circles in given positions
+          //for (unsigned i = 0; i != blocks[cur_iteration].size(); ++i){
+          //  Block *block_ = blocks[cur_iteration][i];
+          //  //Get circle and add the current next
+          //}
         }
       }
     };

@@ -31,7 +31,7 @@ namespace octet {
       mesh_box *floor = new mesh_box(vec3(4));
       scene_node *node = new scene_node();
       node->translate(vec3(0, -15, 0));
-      node->scale(vec3(10, 0.1, 10));
+      node->scale(vec3(10, 0.1f, 10));
       app_scene->add_child(node);
       app_scene->add_mesh_instance(new mesh_instance(node, floor, green));
 

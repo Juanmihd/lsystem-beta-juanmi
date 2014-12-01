@@ -157,8 +157,8 @@ namespace octet{
         printf("%c", dupla_.left[i]);
       }
       printf(":");
-      for (int i = 0; i < dupla_.right.size(); ++i){
-        for (int j = 0; j < dupla_.size_right[i]; ++j){
+      for (unsigned i = 0; i != dupla_.right.size(); ++i){
+        for (unsigned j = 0; j != dupla_.size_right[i]; ++j){
           printf("%c", dupla_.right[i][j]);
         }
         printf(" ");
@@ -199,8 +199,9 @@ namespace octet{
       if (left_side_is(new_dupla, "angle", 5)){
         //process angle
         int sizeAngles = new_dupla.right.size();
+
         for (int i = 0; i < sizeAngles; ++i){
-          ls_angle.push_back(get_float(new_dupla.right[i],new_dupla.size_right[i]));
+          ls_angle.push_back(get_float(new_dupla.right[i], new_dupla.size_right[i]));
         }
         get_new_dupla_line(new_dupla);
       }
@@ -216,14 +217,14 @@ namespace octet{
       //Process num iteration
       if (left_side_is(new_dupla, "iteration", 9)){
         //Process num
-        ini_iteration = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        ini_iteration = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
         get_new_dupla_line(new_dupla);
       }
       //Read symbols
       if (left_side_is(new_dupla, "symbols", 7)){
         dynarray<char> symbol;
         symbol.resize(2);
-        int num_symbols = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        int num_symbols = (int)get_float(new_dupla.right[0], new_dupla.size_right[0]);
         for (int i = 0; i < num_symbols; ++i){
           get_new_dupla_line(new_dupla);
           symbol[0] = new_dupla.left[0];
@@ -244,7 +245,7 @@ namespace octet{
       //Read number and type of rules
       if (left_side_is(new_dupla, "rules", 5)){
         int numInfo = new_dupla.right.size();
-        size_rules = get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
         rules.resize(size_rules);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
@@ -365,7 +366,7 @@ namespace octet{
     }
 
     float get_angle(){
-      return ls_angle[0];
+      return ls_angle[1];
     }
 
     float get_distance(){
