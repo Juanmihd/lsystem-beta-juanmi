@@ -9,22 +9,18 @@ namespace octet{
     class lsystem_mesh : public mesh{
       ///Each one of the elements to be drawed with the lsystem
       struct Block : public resource{
-        mat4t origin;
-        mat4t next;
-        float radio;
-      };
-
-      struct Turtle3D : public resource{
         mat4t pos;
         mat4t transform;
         float radio;
       };
 
       void printf_mat4t(mat4t & mat){
+        float *temp = mat.get();
         for (unsigned i = 0; i != 4; ++i){
           for (unsigned j = 0; j != 4; ++j){
-            mat.
+            printf("%f ", temp[i*4+j]);
           }
+          printf("\n");
         }
       }
       
@@ -39,7 +35,7 @@ namespace octet{
       int cur_iteration;
       bool visualize3D;
       ///stack for the turtle position when generating blocks
-      dynarray<ref<Turtle3D>> stack3d;
+      dynarray<ref<Block>> stack3d;
 
     public:
       lsystem_mesh(){
@@ -103,7 +99,7 @@ namespace octet{
           blocks[iteration].reserve(num_symbols);
 
           //Generate initial stack for turtle3D
-          Turtle3D * back_stack = new Turtle3D();
+          Block * back_stack = new Block();
           back_stack->pos.loadIdentity();
           back_stack->radio = r_init;
           back_stack->transform.loadIdentity();
@@ -114,23 +110,33 @@ namespace octet{
           //Start generation
           for (int i = 0; i < size_word; ++i){
             char symbol = word[i];
-            printf("%c ", symbol);
+            printf("\n%c:\n", symbol);
             switch (symbol){
             case 'F':
               //Reserve new block
               new_block = new Block();
-              new_block->origin = back_stack->pos;
+              printf("Stack pos:\n");
+              printf_mat4t(back_stack->pos);
               back_stack->pos.multMatrix(back_stack->transform);
-              new_block->next = back_stack->pos;
+              new_block->pos = back_stack->pos;
+              new_block->transform = back_stack->transform;
+              printf("New block pos:\n");
+              printf_mat4t(new_block->pos);
+              printf("New block transform:\n");
+              printf_mat4t(new_block->transform);
               new_block->radio = back_stack->radio;
               blocks[iteration].push_back(new_block);
               break;
             case '[':
-              back_stack = new Turtle3D();
-              back_stack->pos = stack3d.back()->pos;
+              back_stack = new Block();
+              back_stack->pos = blocks[iteration].back()->pos;
               back_stack->transform = stack3d.back()->transform;
               back_stack->radio = stack3d.back()->radio;
               back_stack->pos.multMatrix(back_stack->transform);
+              printf("Stack pos:\n");
+              printf_mat4t(back_stack->pos);
+              printf("Stack transform:\n");
+              printf_mat4t(back_stack->transform);
               stack3d.push_back(back_stack);
               back_stack = stack3d.back();
               break;
