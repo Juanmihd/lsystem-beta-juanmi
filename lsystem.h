@@ -284,17 +284,26 @@ namespace octet{
     /// Generates the next iteration of the l_system given a input
     void produce_next_word(dynarray<char> &output, const dynarray<char> &input){
       int size_input = input.size();
-      output.reserve(size_input * 2);
+      int size_output = size_input * 5;
+      output.reserve(size_output);
       for (int i = 0; i < size_input; ++i){
         char symbol[2];
         symbol[0] = input[i];
         symbol[1] = '\0';
         if (!alphabet.contains(symbol)){
           output.push_back(input[i]);
+          --size_output;
         }
         else{
           int value_symbol = alphabet[symbol];
           rule * cur_rule = rules[value_symbol][0];
+          int size_rule = cur_rule->right.size();
+          if (size_output <= size_rule){
+            output.reserve(output.capacity() + size_rule * 2);
+            size_output += size_rule;
+          }
+          else
+            size_output -= size_rule;
           for (int i_rule = 0; i_rule < cur_rule->right.size(); ++i_rule){
             output.push_back(cur_rule->right[i_rule]);
           }
