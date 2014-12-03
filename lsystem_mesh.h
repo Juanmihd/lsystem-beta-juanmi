@@ -4,7 +4,7 @@
 
 namespace octet{
   namespace scene{
-    enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1};
+    enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
     enum {PRECISION_CYLINDER = 10, R_INIT = 1};
     class lsystem_mesh : public mesh{
 
@@ -87,21 +87,23 @@ namespace octet{
         //update positions
       }
 
-      void set_iteration(int cur_iteration_){
+      void set_iteration(int cur_iteration_){/*
         cur_iteration = cur_iteration_;
-        //printf("Current iteration %i\n", cur_iteration);
-        if (ls_generated[cur_iteration] == _GENERATED)
-          ls_generated[cur_iteration] = _TO_UPDATE;
+        if (ls_generated[cur_iteration] != _NONE)
+          ls_generated[cur_iteration] = _TO_UPDATE;*/
       }
 
       ///It will input and generate the word as an l_system. It will check previously if it has been already generated
       void input_word(int iteration, char *word, int size_word){
+        
         //check if it has been already generated
+        printf("Inputing new word\n");
         cur_iteration = iteration;
-        if (ls_generated[iteration] != _NONE){ //already generated
+        if (ls_generated[iteration] == _GENERATED){ //already generated
           printf("Nothing to generate here. But it may be needed to update!\n");
         }
-        else{ //generate new set of blocks
+        else if(ls_generated[iteration] == _NONE){ //generate new set of blocks
+          printf("Starting generation of word");
           ls_generated[iteration] = _TO_UPDATE;
           num_symbols[iteration] = 0;
           //Check size of l_system
@@ -135,10 +137,6 @@ namespace octet{
             case 'F':
               //Reserve new block
               new_block = new Block();
-              //printf("Stack pos:\n");
-              //printf_mat4t(back_stack->pos);
-              //printf("Stack transform:\n");
-              //printf_mat4t(back_stack->transform);
               //Fill new block
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
@@ -148,6 +146,9 @@ namespace octet{
               blocks[iteration].push_back(new_block);
               //Update turtle3d
               back_stack->pos = new_block->transform;
+              aux_vector = new_block->transform.row(3);
+              back_stack->transform.loadIdentity();
+              back_stack->transform.translate(aux_vector.xyz().normalize() * distance);
               //Debuging things
             /*  printf("New block pos:\n");
               printf_mat4t(new_block->pos);
@@ -177,35 +178,24 @@ namespace octet{
               aux_matrix.loadIdentity();
               aux_matrix.rotateX(angle_X);
               back_stack->transform.multMatrix(aux_matrix);
-              //aux_vector = back_stack->transform.row(3);
-              //back_stack->transform.loadIdentity();
-              //back_stack->transform.translate(aux_vector.xyz());
-              /* printf("Stack pos:\n");
-              printf_mat4t(back_stack->pos);
-              printf("Stack transform:\n");
-              printf_mat4t(back_stack->transform);*/
               break;
             case '-':
               aux_matrix.loadIdentity();
               aux_matrix.rotateX(-angle_X);
               back_stack->transform.multMatrix(aux_matrix);
-              //aux_vector = back_stack->transform.row(3);
-              //back_stack->transform.loadIdentity();
-              //back_stack->transform.translate(aux_vector.xyz());
-              //printf("Stack pos:\n");
-              //printf_mat4t(back_stack->pos);
-              //printf("Stack transform:\n");
-              //printf_mat4t(back_stack->transform);
               break;
             }
           }//End for generation of blocks
-          //printf("Generated %i new blocks for tree\n",blocks[iteration].size());
+          printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
+
+        generate();
       }
 
       void generate(){
         //If the tree is not up to date
-        if (ls_generated[cur_iteration] != _GENERATED){
+        if (true){
+          printf("REGENRATE iteration %i!\n", cur_iteration);
           ls_generated[cur_iteration] = _GENERATED;
 
           //Reserve space for the vertexes and indices
@@ -272,6 +262,9 @@ namespace octet{
 
           }
         }
+        
+        printf("Indices %d\n", get_num_indices());
+
       }
 
 

@@ -44,10 +44,10 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_a.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_b.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_c.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
@@ -155,14 +155,18 @@ namespace octet {
       //O next step
       else if (is_key_going_down('O')){
         lsystems[cur_lsystem]->next();
-        lsystem_meshes[cur_lsystem]->set_iteration(lsystems[cur_lsystem]->get_iteration());
-        lsystem_meshes[cur_lsystem]->input_word(lsystems[cur_lsystem]->get_iteration(), lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
+        int cur_iteration = lsystems[cur_lsystem]->get_iteration();
+        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
+        lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
       }
       //L previous step
       else if (is_key_going_down('L')){
         lsystems[cur_lsystem]->previous();
-        lsystem_meshes[cur_lsystem]->set_iteration(lsystems[cur_lsystem]->get_iteration());
-        lsystem_meshes[cur_lsystem]->input_word(lsystems[cur_lsystem]->get_iteration(), lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
+        int cur_iteration = lsystems[cur_lsystem]->get_iteration();
+        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
+        lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
       }
       //P print current word
       else if (is_key_going_down('P')){
@@ -189,21 +193,19 @@ namespace octet {
       }
       //TGFH control tree (rotate and up-down)
       else if (is_key_down('T')){
+        lsystem_nodes[cur_lsystem]->translate(vec3(0, 1, 0));
       }
       else if (is_key_down('G')){
+        lsystem_nodes[cur_lsystem]->translate(vec3(0, -1, 0));
       }
       else if (is_key_down('F')){
+        lsystem_nodes[cur_lsystem]->rotate(1, vec3(0, 1, 0));
       }
       else if (is_key_down('H')){
+        lsystem_nodes[cur_lsystem]->rotate(-1, vec3(0, 1, 0));
       }
       //B togles on-off the ground
       else if (is_key_going_down('B')){
-      }
-      //V generates the tree from the l_system
-      else if (is_key_going_down('V')){
-        int i = lsystems[cur_lsystem]->get_iteration();
-        //printf("Reading iteration %i with the word \n%s\n", i, lsystems[cur_lsystem]->get_word());
-        lsystem_meshes[cur_lsystem]->input_word(lsystems[i]->get_iteration(),lsystems[i]->get_word(),lsystems[i]->get_size_word());
       }
     }
 
@@ -215,8 +217,6 @@ namespace octet {
 
       //Move the camera with the mouse
       camera.update(app_scene->get_camera_instance(0)->get_node()->access_nodeToParent());
-    
-      lsystem_meshes[cur_lsystem]->generate();
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
       

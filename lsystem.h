@@ -315,7 +315,9 @@ namespace octet{
     void generate_new_word(){
       if (words.size() < cur_iteration)
         words.reserve(cur_iteration + 5);
+      printf("L_system_word\n");
       produce_next_word(words[cur_iteration], words[max_iteration]);
+      printf("L_system_word DONE\n");
       ++max_iteration;
     }
 
