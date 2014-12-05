@@ -12,6 +12,7 @@ namespace octet{
   /// This is the lsystem class. It will create an object that will control the l_system
   class lsystem : public resource{
     enum { DEBUG_LS_PARSER = 0, DEBUG_LS_GEN = 0, DEBUG_LS_DRAW = 0 };
+    enum _OPTIONS {_PROB, _ITER, _CONT, _POS_CON};
     /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
     struct dupla : public resource{
       char *left;
@@ -64,14 +65,13 @@ namespace octet{
       for (int i = 0; i < size_rule; ++i){
         new_rule->right.push_back(dupla.right[0][i]);
       }
-      //But it may also be a "complex rule", SYMBOL:RULE CONTEXT POS_CONTEXT ITERATION PROBABILITY
+      new_rule->pos_in_context = -1;
+      new_rule->iteration = -1;
+      new_rule->probability = 1.0f;
+      
+      //But it may also be a "complex rule", SYMBOL:RULE PROBABILITY ITERATION CONTEXT POS_CONTEXT  
       if (dupla.right.size() > 1){
         //To fill later
-      }
-      else{
-        new_rule->pos_in_context = -1;
-        new_rule->iteration = -1;
-        new_rule->probability = 1.0f;
       }
     }
 

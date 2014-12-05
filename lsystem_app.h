@@ -16,6 +16,8 @@ namespace octet {
     dynarray<ref<lsystem>> lsystems;
     dynarray<ref<lsystem_mesh>> lsystem_meshes;
     dynarray<ref<scene_node>> lsystem_nodes;
+    ref<scene_node> floor_node;
+    bool floor_on;
     int cur_lsystem;
     //Camera stuff!
     mouse_ball camera;
@@ -33,12 +35,12 @@ namespace octet {
       //Adding the floor to the scene (not important, actually, remove by a keystroke)
       material *green = new material(vec4(0, 1, 0, 1));
       mesh_box *floor = new mesh_box(vec3(4));
-      scene_node *node = new scene_node();
-      node->translate(vec3(0, -15, 0));
-      node->scale(vec3(10, 0.1f, 10));
-      app_scene->add_child(node);
-      app_scene->add_mesh_instance(new mesh_instance(node, floor, green));
-
+      floor_node = new scene_node();
+      floor_node->translate(vec3(0, -15, 0));
+      floor_node->scale(vec3(1000, 0.01f, 1000));
+      app_scene->add_child(floor_node);
+      app_scene->add_mesh_instance(new mesh_instance(floor_node, floor, green));
+      floor_on = true;
       cur_lsystem = 0;
       lsystem *temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
@@ -50,13 +52,13 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_c.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_d.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_e.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_f.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
@@ -79,6 +81,7 @@ namespace octet {
         param_shader *shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
         material *red = new material(vec4(1, 0, 0, 1), shader);
         scene_node *node = new scene_node();
+        node->rotate(-90, vec3(0, 1, 0));
         node->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         lsystem_nodes.push_back(node);
         app_scene->add_child(node);
@@ -173,13 +176,13 @@ namespace octet {
         lsystems[cur_lsystem]->print();
       }
       //WSAD control camera
-      else if (is_key_down('W')){
+      if (is_key_down('W')){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, 2.5, 0);
       }
       else if (is_key_down('S')){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, -2.5, 0);
       }
-      else if (is_key_down('A')){
+      if (is_key_down('A')){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(-2.5, 0, 0);
       }
       else if (is_key_down('D')){
@@ -205,7 +208,24 @@ namespace octet {
         lsystem_nodes[cur_lsystem]->rotate(-1, vec3(0, 1, 0));
       }
       //B togles on-off the ground
-      else if (is_key_going_down('B')){
+      else if (is_key_going_down('R')){
+        if (floor_on)
+          floor_node->translate(vec3(_FAR_FAR_AWAY, _FAR_FAR_AWAY, _FAR_FAR_AWAY));
+        else
+          floor_node->translate(vec3(-_FAR_FAR_AWAY, -_FAR_FAR_AWAY, -_FAR_FAR_AWAY));
+        floor_on = !floor_on;
+      }
+      else if (is_key_going_down('Z')){
+        lsystem_meshes[cur_lsystem]->decrease_radius();
+      }
+      else if (is_key_going_down('X')){
+        lsystem_meshes[cur_lsystem]->increase_radius();
+      }
+      else if (is_key_down('C')){
+        lsystem_meshes[cur_lsystem]->decrease_angle();
+      }
+      else if (is_key_down('V')){
+        lsystem_meshes[cur_lsystem]->increase_angle();
       }
     }
 

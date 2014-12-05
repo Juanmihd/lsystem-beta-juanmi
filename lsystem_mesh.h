@@ -37,6 +37,8 @@ namespace octet{
       ///info for each one of the lsystem generated
       dynarray<dynarray<ref<Block>>> blocks;
       dynarray<int> num_symbols;
+      dynarray<char*> words;
+      dynarray<int> size_words;
       dynarray<status_ls> ls_generated;
       float angle_X;
       float angle_Y;
@@ -65,6 +67,30 @@ namespace octet{
         precision = PRECISION_CYLINDER;
       }
 
+      void increase_radius(){
+        r_init += 0.1;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_radius(){
+        r_init -= 0.1;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void increase_angle(){
+        angle_X += 0.5;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_angle(){
+        angle_X -= 0.5;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
       void init_values(float angle_, float distance_){
         angle_X = angle_;
         distance = distance_;
@@ -73,13 +99,13 @@ namespace octet{
       void update_angle(float angle_){
         angle_X = angle_;
         //update positions
-        ls_generated = _TO_UPDATE;
+        ls_generated[cur_iteration] = _TO_UPDATE;
       }
 
       void update_distance(float distance_){
         distance = distance_;
         //update positions
-        ls_generated = _TO_UPDATE;
+        ls_generated[cur_iteration] = _TO_UPDATE;
       }
 
       void update_values(float angle_, float distance_){
@@ -93,31 +119,30 @@ namespace octet{
           ls_generated[cur_iteration] = _TO_UPDATE;*/
       }
 
-      ///It will input and generate the word as an l_system. It will check previously if it has been already generated
-      void input_word(int iteration, char *word, int size_word){
-        
+      void generate_iteration(int iteration){
         //check if it has been already generated
         printf("Inputing new word\n");
         cur_iteration = iteration;
         if (ls_generated[iteration] == _GENERATED){ //already generated
           printf("Nothing to generate here. But it may be needed to update!\n");
         }
-        else if(ls_generated[iteration] == _NONE){ //generate new set of blocks
+        else if (ls_generated[iteration] == _NONE){ //generate new set of blocks
           printf("Starting generation of word");
           ls_generated[iteration] = _TO_UPDATE;
           num_symbols[iteration] = 0;
           //Check size of l_system
-          for (int i = 0; i < size_word; ++i){
-            if (word[i] != '[' && word[i] != ']' && word[i] != '+' && word[i] != '-')
+          for (int i = 0; i < size_words[iteration]; ++i){
+            if (words[iteration][i] != '[' && words[iteration][i] != ']' && words[iteration][i] != '+' && words[iteration][i] != '-')
               ++num_symbols[iteration];
           }
 
           //Set up the generation
-          if (blocks.size() < (unsigned) iteration){
+          if (blocks.size() < (unsigned)iteration){
             blocks.resize(iteration + 1);
           }
-          blocks[iteration].reserve(num_symbols[iteration]);
+          blocks[iteration].reset();
 
+          blocks[iteration].reserve(num_symbols[iteration]);
           //Generate initial stack for turtle3D
           Block * back_stack = new Block();
           back_stack->pos.loadIdentity();
@@ -126,12 +151,12 @@ namespace octet{
           back_stack->transform.translate(0, distance, 0);
           stack3d.push_back(back_stack);
           Block *new_block;
-          
+
           //Start generation
-          for (int i = 0; i < size_word; ++i){
+          for (int i = 0; i < size_words[iteration]; ++i){
             mat4t aux_matrix;
             vec4 aux_vector;
-            char symbol = word[i];
+            char symbol = words[iteration][i];
             //printf("\n%c:\n", symbol);
             switch (symbol){
             case 'F':
@@ -141,7 +166,7 @@ namespace octet{
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.multMatrix(back_stack->transform);
-              new_block->radio = back_stack->radio;
+              new_block->radio = back_stack->radio*0.5f;
               //Add new block
               blocks[iteration].push_back(new_block);
               //Update turtle3d
@@ -150,7 +175,7 @@ namespace octet{
               back_stack->transform.loadIdentity();
               back_stack->transform.translate(aux_vector.xyz().normalize() * distance);
               //Debuging things
-            /*  printf("New block pos:\n");
+              /*  printf("New block pos:\n");
               printf_mat4t(new_block->pos);
               printf("New block transform:\n");
               printf_mat4t(new_block->transform);
@@ -192,10 +217,27 @@ namespace octet{
         generate();
       }
 
+      ///It will input and generate the word as an l_system. It will check previously if it has been already generated
+      void input_word(int iteration, char *word, int size_word){
+        if (size_words.size() < (unsigned)iteration){
+          int temp_size = size_words.size();
+          size_words.resize(iteration + 2);
+          words.resize(iteration + 2);
+          for (int i = temp_size; i <= iteration + 2; ++i){
+            size_words[i] = 0;
+            words[i] = '\0';
+          }
+        }
+        words[iteration] = word;
+        size_words[iteration] = size_word;
+
+        generate_iteration(iteration);
+      }
+
       void generate(){
         //If the tree is not up to date
         if (true){
-          printf("REGENRATE iteration %i!\n", cur_iteration);
+          printf("REGENERATE iteration %i!\n", cur_iteration);
           ls_generated[cur_iteration] = _GENERATED;
 
           //Reserve space for the vertexes and indices
@@ -203,9 +245,11 @@ namespace octet{
           size_t num_indices = PRECISION_CYLINDER * 6 * num_symbols[cur_iteration];
           allocate(sizeof(my_vertex) * num_vertexes, sizeof(uint32_t) * num_indices);
           set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_TRIANGLES, GL_UNSIGNED_INT);
-          add_attribute(attribute_pos, 3, GL_FLOAT, 0);
-          add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
-
+          if (get_num_slots() != 2){
+            add_attribute(attribute_pos, 3, GL_FLOAT, 0);
+            add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+          }
+          
           gl_resource::wolock vlock(get_vertices());
           my_vertex *vtx = (my_vertex*)vlock.u8();
           gl_resource::wolock ilock(get_indices());
