@@ -61,7 +61,7 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_f.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_g.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
@@ -99,67 +99,67 @@ namespace octet {
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 1;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 1\n");
+        //printf("Switch to tree 1\n");
       }
       else if (is_key_going_down('2')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 2;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 2\n");
+        //printf("Switch to tree 2\n");
       }
       else if (is_key_going_down('3')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 3;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 3\n");
+        //printf("Switch to tree 3\n");
       }
       else if (is_key_going_down('4')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 4;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 4\n");
+        //printf("Switch to tree 4\n");
       }
       else if (is_key_going_down('5')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 5;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 5\n");
+        //printf("Switch to tree 5\n");
       }
       else if (is_key_going_down('6')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 6;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 6\n");
+        //printf("Switch to tree 6\n");
       }
       else if (is_key_going_down('7')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 7;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 7\n");
+        //printf("Switch to tree 7\n");
       }
       else if (is_key_going_down('8')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 8;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 8\n");
+        //printf("Switch to tree 8\n");
       }
       else if (is_key_going_down('9')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 9;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to tree 9\n");
+        //printf("Switch to tree 9\n");
       }
       else if (is_key_going_down('0')){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 0;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
-        printf("Switch to initial tree\n");
+        //printf("Switch to initial tree\n");
       }
       //O next step
       else if (is_key_going_down('O')){
         lsystems[cur_lsystem]->next();
         int cur_iteration = lsystems[cur_lsystem]->get_iteration();
-        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
       }
@@ -167,7 +167,7 @@ namespace octet {
       else if (is_key_going_down('L')){
         lsystems[cur_lsystem]->previous();
         int cur_iteration = lsystems[cur_lsystem]->get_iteration();
-        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
       }

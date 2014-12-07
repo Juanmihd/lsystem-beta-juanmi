@@ -249,6 +249,16 @@ namespace octet{
         rules.resize(size_rules);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
+          // { _PROB, _ITER, _CONT, _POS_CON };
+          if (new_dupla.right[i][0] == 'P'){
+            printf("P!!!!!\n");
+          }
+          else if (new_dupla.right[i][0] == 'I'){
+            printf("I!!!!!\n");
+          }
+          else if (new_dupla.right[i][0] == 'C'){
+            printf("C!!!!!\n");
+          }
         }
         //Read rules
         dynarray<char> symbol;
