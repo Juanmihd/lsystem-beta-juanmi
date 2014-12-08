@@ -5,7 +5,7 @@
 namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
-    enum {PRECISION_CYLINDER = 10, R_INIT = 1};
+    enum { PRECISION_CYLINDER = 30, RED_INIT = 1 };
     class lsystem_mesh : public mesh{
 
       struct my_vertex{
@@ -45,6 +45,9 @@ namespace octet{
       float distance;
       float r_init;
       float precision;
+      float r_reduction;
+      float default_angle;
+      float default_distance;
       int cur_iteration;
       bool visualize3D;
       ///stack for the turtle position when generating blocks
@@ -61,10 +64,22 @@ namespace octet{
         visualize3D = false;
         cur_iteration = 0;
         angle_Y = 0;
+        default_angle = 0;
         angle_X = 0;
         distance = 5;
+        default_distance = 5;
         r_init = 0.1;
+        r_reduction = RED_INIT;
         precision = PRECISION_CYLINDER;
+      }
+
+      void reset(){
+        angle_X = default_angle;
+        distance = default_distance;
+        r_init = 0.1;
+        r_reduction = RED_INIT;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
       }
 
       void increase_radius(){
@@ -75,6 +90,18 @@ namespace octet{
 
       void decrease_radius(){
         r_init -= 0.1;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void increase_reduction(){
+        r_reduction -= 0.001;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_reduction(){
+        r_reduction += 0.001;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -91,19 +118,35 @@ namespace octet{
         generate_iteration(cur_iteration);
       }
 
+      void increase_distance(){
+        distance += 0.2;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_distance(){
+        distance -= 0.2;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
       void init_values(float angle_, float distance_){
         angle_X = angle_;
         distance = distance_;
+        default_angle = angle_;
+        default_distance = distance_;
       }
 
       void update_angle(float angle_){
         angle_X = angle_;
+        default_angle = angle_;
         //update positions
         ls_generated[cur_iteration] = _TO_UPDATE;
       }
 
       void update_distance(float distance_){
         distance = distance_;
+        default_distance = distance_;
         //update positions
         ls_generated[cur_iteration] = _TO_UPDATE;
       }
@@ -166,13 +209,14 @@ namespace octet{
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.multMatrix(back_stack->transform);
-              new_block->radio = back_stack->radio*0.5f;
+              new_block->radio = back_stack->radio;
               //Add new block
               blocks[iteration].push_back(new_block);
               //Update turtle3d
               back_stack->pos = new_block->transform;
-              aux_vector = new_block->transform.row(3);
+              aux_vector = back_stack->transform.row(3);
               back_stack->transform.loadIdentity();
+              back_stack->radio = back_stack->radio * r_reduction;
               back_stack->transform.translate(aux_vector.xyz().normalize() * distance);
               //Debuging things
               /*  printf("New block pos:\n");
@@ -277,7 +321,7 @@ namespace octet{
               //Obtain the rotated circle with that orientation
               float r = 0.0f, g = 1.0f * i / blocks[cur_iteration].size(), b = 1.0f;
               vec3 pos_c = circle[j].pos*block_->radio; //Rotate with orientation
-              vec3 normal_c = circle[j].pos*block_->radio; //Rotate with orientation
+              vec3 pos_c2 = circle[j].pos*block_->radio*r_reduction; //Rotate with orientation
               //Obtain both sides of the cylinder
               vtx->pos = pos_1 + pos_c;
               vtx->color = make_color(r, g, b);
@@ -288,9 +332,9 @@ namespace octet{
               vtx++;
               vtx->pos = pos_2 + pos_c;
               vtx->color = make_color(r, g, b);
-              t1 = (pos_2.get()[0] + pos_c.get()[0]);
-              t2 = (pos_2.get()[1] + pos_c.get()[1]);
-              t3 = (pos_2.get()[2] + pos_c.get()[2]);
+              t1 = (pos_2.get()[0] + pos_c2.get()[0]);
+              t2 = (pos_2.get()[1] + pos_c2.get()[1]);
+              t3 = (pos_2.get()[2] + pos_c2.get()[2]);
               vtx++;
               idx[0] = nv; idx[1] = nv + 1; idx[2] = nv + 3;
               idx[3] = nv; idx[4] = nv + 3; idx[5] = nv + 2;

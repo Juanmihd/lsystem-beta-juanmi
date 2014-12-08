@@ -208,7 +208,7 @@ namespace octet {
         lsystem_nodes[cur_lsystem]->rotate(-1, vec3(0, 1, 0));
       }
       //B togles on-off the ground
-      else if (is_key_going_down('R')){
+      else if (is_key_going_down('Y')){
         if (floor_on)
           floor_node->translate(vec3(_FAR_FAR_AWAY, _FAR_FAR_AWAY, _FAR_FAR_AWAY));
         else
@@ -226,6 +226,21 @@ namespace octet {
       }
       else if (is_key_down('V')){
         lsystem_meshes[cur_lsystem]->increase_angle();
+      }
+      else if (is_key_going_down('B')){
+        lsystem_meshes[cur_lsystem]->decrease_reduction();
+      }
+      else if (is_key_going_down('N')){
+        lsystem_meshes[cur_lsystem]->increase_reduction();
+      }
+      else if (is_key_going_down('M')){
+        lsystem_meshes[cur_lsystem]->decrease_distance();
+      }
+      else if (is_key_going_down('J')){
+        lsystem_meshes[cur_lsystem]->increase_distance();
+      }
+      else if (is_key_going_down('R')){
+        lsystem_meshes[cur_lsystem]->reset();
       }
     }
 
