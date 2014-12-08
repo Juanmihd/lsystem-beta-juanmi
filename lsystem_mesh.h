@@ -5,6 +5,7 @@
 namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
+    enum type_leaf{ _FLAT = -1, _POINTY = 0, _MESH = 1, _RANDOM = 2 };
     enum { PRECISION_CYLINDER = 30, RED_INIT = 1 };
     class lsystem_mesh : public mesh{
 
@@ -53,10 +54,14 @@ namespace octet{
       float r_reduction;
       float default_angle;
       float default_distance;
+      type_leaf leaf_mode;
       int cur_iteration;
       float max_depth;
       bool visualize3D;
       bool reduction_toggle;
+      bool distance_random;
+      bool angle_random;
+      bool radius_random;
       ///stack for the turtle position when generating blocks
       dynarray<ref<Block>> stack3d;
 
@@ -71,8 +76,12 @@ namespace octet{
           num_symbols.push_back(0);
           num_leaves.push_back(0);
         }
+        leaf_mode = _FLAT;
         visualize3D = false;
         reduction_toggle = true;
+        distance_random = false;
+        angle_random = false;
+        radius_random = false;
         cur_iteration = 0;
         angle_Y = 80;
         default_angle = 0;
@@ -84,47 +93,58 @@ namespace octet{
         precision = PRECISION_CYLINDER;
       }
 
+      ///This function set the type of the leaf
+      void set_leaf_mode(int i){
+        leaf_mode = (type_leaf) i;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      ///This function reset all the L_system angle, distance, reduction (inputed from keyboard)
       void reset(){
         angle_X = default_angle;
         distance = default_distance;
         r_init = 0.1;
         r_reduction = RED_INIT;
+        distance_random = false;
+        radius_random = false;
+        angle_random = false;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
 
+      ///Enable/disable radius random mode
+      void switch_radius_random(){
+        radius_random = !radius_random;
+      }
+
+      ///Enable/disable distance random mode
+      void switch_distance_random(){
+        distance_random = !distance_random;
+      }
+
+      ///Enable/disable angle random mode
+      void switch_angle_random(){
+        angle_random = !angle_random;
+      }
+
+      ///This function switchs the type of visualization 
       void switch3d(){
         visualize3D = !visualize3D;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
 
+      ///This function specifies the way to apply the reduction like a cone or individually
       void switchReduction(){
         reduction_toggle = !reduction_toggle;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
 
-      void increase_radius_strong(){
-        r_init += 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
-      }
-
-      void decrease_radius_strong(){
-        r_init -= 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
-      }
-
-      void increase_radius(){
-        r_init += 0.1;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
-      }
-
-      void decrease_radius(){
-        r_init -= 0.1;
+      ///This function is to apply a modifier to the radius
+      void modify_radius(float value){
+        r_init += value;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -304,7 +324,8 @@ namespace octet{
             case ']': //If it's popping add a leaf
               new_leaf = new my_vertex();
               new_leaf->pos = stack3d.back()->pos.row(3).xyz();
-              last_block->radio2 = 0;
+              if (leaf_mode == _POINTY)
+                last_block->radio2 = 0;
               stack3d.pop_back();
               back_stack = stack3d.back();
               break;
@@ -330,7 +351,8 @@ namespace octet{
               break;
             }
           }//End for generation of blocks
-          last_block->radio2 = 0;
+          if (leaf_mode == _POINTY)
+            last_block->radio2 = 0;
           //printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
 

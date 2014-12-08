@@ -79,6 +79,18 @@ namespace octet{
       }
     }
 
+    //Get the int value from a word
+    int get_int(char *word, int size_word){
+      int number = 0;
+
+      for (int i = 0; i != size_word; ++i){
+        number = 10 * number + (*word - 0x30);
+        ++word;
+      }
+
+      return number;
+    }
+
     /// Get the float value from a word
     float get_float(char *word, int size_word){
       float number = 0;

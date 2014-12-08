@@ -221,16 +221,16 @@ namespace octet {
       }
       //ZX controles the radius
       else if (is_key_down('Z') && !is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->decrease_radius();
+        lsystem_meshes[cur_lsystem]->modify_radius(-0.1);
       }
       else if (is_key_down('X') && !is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->increase_radius();
+        lsystem_meshes[cur_lsystem]->modify_radius(0.1);
       }
       else if (is_key_down('Z') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->decrease_radius_strong();
+        lsystem_meshes[cur_lsystem]->modify_radius(0.5);
       }
       else if (is_key_down('X') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->decrease_radius_strong();
+        lsystem_meshes[cur_lsystem]->modify_radius(-0.5);
       }
       //CV controls the angles
       else if (is_key_down('C') && !is_key_down(key_ctrl)){
@@ -264,6 +264,24 @@ namespace octet {
       }
       else if (is_key_going_down('R')){
         lsystem_meshes[cur_lsystem]->reset();
+      }
+      else if (is_key_down('F') && !is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(-1);
+      }
+      else if (is_key_down('G') && !is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(0);
+      }
+      else if (is_key_down('H') && !is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(1);
+      }
+      else if (is_key_going_down('F') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switch_radius_random();
+      }
+      else if (is_key_going_down('G') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switch_distance_random();
+      }
+      else if (is_key_going_down('H') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switch_angle_random();
       }
     }
 
