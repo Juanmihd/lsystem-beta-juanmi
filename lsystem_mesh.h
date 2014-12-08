@@ -17,11 +17,14 @@ namespace octet{
       static uint32_t make_color(float r, float g, float b) {
         return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
       }
+
       ///Each one of the elements to be drawed with the lsystem
       struct Block : public resource{
         mat4t pos;
         mat4t transform;
         float radio;
+        float radio2;
+        float depth;
       };
 
       void printf_mat4t(mat4t & mat){
@@ -36,7 +39,9 @@ namespace octet{
       
       ///info for each one of the lsystem generated
       dynarray<dynarray<ref<Block>>> blocks;
+      dynarray<my_vertex> leaves;
       dynarray<int> num_symbols;
+      dynarray<int> num_leaves;
       dynarray<char*> words;
       dynarray<int> size_words;
       dynarray<status_ls> ls_generated;
@@ -49,6 +54,7 @@ namespace octet{
       float default_angle;
       float default_distance;
       int cur_iteration;
+      float max_depth;
       bool visualize3D;
       ///stack for the turtle position when generating blocks
       dynarray<ref<Block>> stack3d;
@@ -57,13 +63,16 @@ namespace octet{
       lsystem_mesh(){
         blocks.reserve(10);
         blocks.resize(10);
+        num_leaves.reserve(20);
+        num_symbols.reserve(20);
         for (int i = 0; i < 20; ++i){
           ls_generated.push_back(_NONE);
           num_symbols.push_back(0);
+          num_leaves.push_back(0);
         }
         visualize3D = false;
         cur_iteration = 0;
-        angle_Y = 0;
+        angle_Y = 80;
         default_angle = 0;
         angle_X = 0;
         distance = 5;
@@ -78,6 +87,18 @@ namespace octet{
         distance = default_distance;
         r_init = 0.1;
         r_reduction = RED_INIT;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void increase_radius_strong(){
+        r_init += 0.5;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_radius_strong(){
+        r_init -= 0.5;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -118,6 +139,18 @@ namespace octet{
         generate_iteration(cur_iteration);
       }
 
+      void increase_angleY(){
+        angle_Y += 0.5;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void decrease_angleY(){
+        angle_Y -= 0.5;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
       void increase_distance(){
         distance += 0.2;
         ls_generated[cur_iteration] = _NONE;
@@ -132,6 +165,7 @@ namespace octet{
 
       void init_values(float angle_, float distance_){
         angle_X = angle_;
+        angle_Y = angle_X;
         distance = distance_;
         default_angle = angle_;
         default_distance = distance_;
@@ -139,6 +173,7 @@ namespace octet{
 
       void update_angle(float angle_){
         angle_X = angle_;
+        angle_Y = angle_X;
         default_angle = angle_;
         //update positions
         ls_generated[cur_iteration] = _TO_UPDATE;
@@ -164,19 +199,21 @@ namespace octet{
 
       void generate_iteration(int iteration){
         //check if it has been already generated
-        printf("Inputing new word\n");
+        //printf("Inputing new word\n");
         cur_iteration = iteration;
         if (ls_generated[iteration] == _GENERATED){ //already generated
-          printf("Nothing to generate here. But it may be needed to update!\n");
+          //printf("Nothing to generate here. But it may be needed to update!\n");
         }
         else if (ls_generated[iteration] == _NONE){ //generate new set of blocks
-          printf("Starting generation of word");
+          //printf("Starting generation of word");
           ls_generated[iteration] = _TO_UPDATE;
           num_symbols[iteration] = 0;
           //Check size of l_system
           for (int i = 0; i < size_words[iteration]; ++i){
             if (words[iteration][i] != '[' && words[iteration][i] != ']' && words[iteration][i] != '+' && words[iteration][i] != '-')
               ++num_symbols[iteration];
+            else if (words[iteration][i] == ']')
+              ++num_leaves[iteration];
           }
 
           //Set up the generation
@@ -192,9 +229,11 @@ namespace octet{
           back_stack->radio = r_init;
           back_stack->transform.loadIdentity();
           back_stack->transform.translate(0, distance, 0);
+          back_stack->depth = 0;
           stack3d.push_back(back_stack);
           Block *new_block;
-
+          Block *last_block;
+          my_vertex *new_leaf;
           //Start generation
           for (int i = 0; i < size_words[iteration]; ++i){
             mat4t aux_matrix;
@@ -203,20 +242,25 @@ namespace octet{
             //printf("\n%c:\n", symbol);
             switch (symbol){
             case 'F':
+            case 'A':
               //Reserve new block
               new_block = new Block();
               //Fill new block
+              last_block = new_block;
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.multMatrix(back_stack->transform);
               new_block->radio = back_stack->radio;
+              new_block->radio2 = back_stack->radio * r_reduction;
+              new_block->depth = back_stack->depth;
               //Add new block
               blocks[iteration].push_back(new_block);
               //Update turtle3d
               back_stack->pos = new_block->transform;
               aux_vector = back_stack->transform.row(3);
               back_stack->transform.loadIdentity();
-              back_stack->radio = back_stack->radio * r_reduction;
+              back_stack->radio = new_block->radio2;
+              back_stack->depth += 1;
               back_stack->transform.translate(aux_vector.xyz().normalize() * distance);
               //Debuging things
               /*  printf("New block pos:\n");
@@ -235,11 +279,15 @@ namespace octet{
               back_stack->pos = stack3d.back()->pos;
               back_stack->transform = stack3d.back()->transform;
               back_stack->radio = stack3d.back()->radio;
+              back_stack->depth = stack3d.back()->depth;
               //Add to stack of 3dTurtle
               stack3d.push_back(back_stack);
               back_stack = stack3d.back();
               break;
-            case ']':
+            case ']': //If it's popping add a leaf
+              new_leaf = new my_vertex();
+              new_leaf->pos = stack3d.back()->pos.row(3).xyz();
+              last_block->radio2 = 0;
               stack3d.pop_back();
               back_stack = stack3d.back();
               break;
@@ -253,9 +301,19 @@ namespace octet{
               aux_matrix.rotateX(-angle_X);
               back_stack->transform.multMatrix(aux_matrix);
               break;
+            case '<':
+              aux_matrix.loadIdentity();
+              aux_matrix.rotateY(angle_Y);
+              back_stack->transform.multMatrix(aux_matrix);
+              break;
+            case '>':
+              aux_matrix.loadIdentity();
+              aux_matrix.rotateY(-angle_Y);
+              back_stack->transform.multMatrix(aux_matrix);
+              break;
             }
           }//End for generation of blocks
-          printf("Generated %i new blocks for tree\n", blocks[iteration].size());
+          //printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
 
         generate();
@@ -281,7 +339,7 @@ namespace octet{
       void generate(){
         //If the tree is not up to date
         if (true){
-          printf("REGENERATE iteration %i!\n", cur_iteration);
+          //printf("REGENERATE iteration %i!\n", cur_iteration);
           ls_generated[cur_iteration] = _GENERATED;
 
           //Reserve space for the vertexes and indices
@@ -319,9 +377,11 @@ namespace octet{
             vec3 pos_2 = vec3(mat_2[3 * 4], mat_2[3 * 4 + 1], mat_2[3 * 4 + 2]);
             for (unsigned j = 0; j != PRECISION_CYLINDER; ++j){
               //Obtain the rotated circle with that orientation
-              float r = 0.0f, g = 1.0f * i / blocks[cur_iteration].size(), b = 1.0f;
+              float r = 0.4f + (0.4f * i / blocks[cur_iteration].size());
+              float g = 0.4f + (0.5f * i / blocks[cur_iteration].size());
+              float b = 0.3f + (0.2f * i / blocks[cur_iteration].size());
               vec3 pos_c = circle[j].pos*block_->radio; //Rotate with orientation
-              vec3 pos_c2 = circle[j].pos*block_->radio*r_reduction; //Rotate with orientation
+              vec3 pos_c2 = circle[j].pos*block_->radio2; //Rotate with orientation
               //Obtain both sides of the cylinder
               vtx->pos = pos_1 + pos_c;
               vtx->color = make_color(r, g, b);
@@ -330,7 +390,7 @@ namespace octet{
               t2 = (pos_1.get()[1] + pos_c.get()[1]);
               t3 = (pos_1.get()[2] + pos_c.get()[2]);
               vtx++;
-              vtx->pos = pos_2 + pos_c;
+              vtx->pos = pos_2 + pos_c2;
               vtx->color = make_color(r, g, b);
               t1 = (pos_2.get()[0] + pos_c2.get()[0]);
               t2 = (pos_2.get()[1] + pos_c2.get()[1]);
@@ -347,12 +407,10 @@ namespace octet{
             idx[4] = nv - 2 * PRECISION_CYLINDER + 1; 
             idx[5] = nv - 2 * PRECISION_CYLINDER;
             idx += 6;
-
           }
         }
         
-        printf("Indices %d\n", get_num_indices());
-
+        //printf("Indices %d\n", get_num_indices());
       }
 
 

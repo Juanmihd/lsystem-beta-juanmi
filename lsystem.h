@@ -333,9 +333,9 @@ namespace octet{
     void generate_new_word(){
       if (words.size() < cur_iteration)
         words.reserve(cur_iteration + 5);
-      printf("L_system_word\n");
+      //printf("L_system_word\n");
       produce_next_word(words[cur_iteration], words[max_iteration]);
-      printf("L_system_word DONE\n");
+      //printf("L_system_word DONE\n");
       ++max_iteration;
     }
 
@@ -371,7 +371,7 @@ namespace octet{
       ++cur_iteration;
       if (cur_iteration > max_iteration){
         generate_new_word();
-        printf("Generating new word\n");
+        //printf("Generating new word\n");
       }
     }
 

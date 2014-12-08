@@ -32,8 +32,8 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 
-      //Adding the floor to the scene (not important, actually, remove by a keystroke)
-      material *green = new material(vec4(0, 1, 0, 1));
+      //Adding the floor to the scene (not important, actually, removable by a keystroke)
+      material *green = new material(vec4(0, 0.3f, 0.1f, 1));
       mesh_box *floor = new mesh_box(vec3(4));
       floor_node = new scene_node();
       floor_node->translate(vec3(0, -15, 0));
@@ -64,13 +64,13 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_g.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_h.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_b.ls");
       lsystems.push_back(temp_system);
       lsystem_mesh *temp_mesh;
       for (int i = 0; i != 10; ++i){
@@ -176,67 +176,79 @@ namespace octet {
         lsystems[cur_lsystem]->print();
       }
       //WSAD control camera
-      if (is_key_down('W')){
+      else if (is_key_down('W') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, 2.5, 0);
       }
-      else if (is_key_down('S')){
+      else if (is_key_down('S') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, -2.5, 0);
       }
-      if (is_key_down('A')){
+      else if (is_key_down('A') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(-2.5, 0, 0);
       }
-      else if (is_key_down('D')){
+      else if (is_key_down('D') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(2.5, 0, 0);
       }
-      if (is_key_down('Q')){
+      else if (is_key_down('Q') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, 0, -2.5);
       }
-      else if (is_key_down('E')){
+      else if (is_key_down('E') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, 0, 2.5);
       }
       //TGFH control tree (rotate and up-down)
-      else if (is_key_down('T')){
+      else if (is_key_down('W') && is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(0, 1, 0));
       }
-      else if (is_key_down('G')){
+      else if (is_key_down('S') && is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(0, -1, 0));
       }
-      else if (is_key_down('F')){
-        lsystem_nodes[cur_lsystem]->rotate(1, vec3(0, 1, 0));
+      else if (is_key_down('A') && is_key_down(key_ctrl)){
+        lsystem_nodes[cur_lsystem]->rotate(10, vec3(0, 1, 0));
       }
-      else if (is_key_down('H')){
-        lsystem_nodes[cur_lsystem]->rotate(-1, vec3(0, 1, 0));
+      else if (is_key_down('D') && is_key_down(key_ctrl)){
+        lsystem_nodes[cur_lsystem]->rotate(-10, vec3(0, 1, 0));
       }
       //B togles on-off the ground
-      else if (is_key_going_down('Y')){
+      else if (is_key_going_down('Q') && is_key_down(key_ctrl)){
         if (floor_on)
           floor_node->translate(vec3(_FAR_FAR_AWAY, _FAR_FAR_AWAY, _FAR_FAR_AWAY));
         else
           floor_node->translate(vec3(-_FAR_FAR_AWAY, -_FAR_FAR_AWAY, -_FAR_FAR_AWAY));
         floor_on = !floor_on;
       }
-      else if (is_key_going_down('Z')){
+      else if (is_key_down('Z') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_radius();
       }
-      else if (is_key_going_down('X')){
+      else if (is_key_down('X') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->increase_radius();
       }
-      else if (is_key_down('C')){
+      else if (is_key_down('Z') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->decrease_radius_strong();
+      }
+      else if (is_key_down('X') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->decrease_radius_strong();
+      }
+      else if (is_key_down('C') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_angle();
       }
-      else if (is_key_down('V')){
+      else if (is_key_down('V') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->increase_angle();
       }
-      else if (is_key_going_down('B')){
+      else if (is_key_down('C') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->decrease_angleY();
+      }
+      else if (is_key_down('V') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->increase_angleY();
+      }
+      else if (is_key_down('B')){
         lsystem_meshes[cur_lsystem]->decrease_reduction();
       }
-      else if (is_key_going_down('N')){
+      else if (is_key_down('N')){
         lsystem_meshes[cur_lsystem]->increase_reduction();
       }
-      else if (is_key_going_down('M')){
+      else if (is_key_down('M')){
         lsystem_meshes[cur_lsystem]->decrease_distance();
       }
-      else if (is_key_going_down('J')){
+      else if (is_key_down('J')){
         lsystem_meshes[cur_lsystem]->increase_distance();
       }
       else if (is_key_going_down('R')){
@@ -248,7 +260,7 @@ namespace octet {
     void draw_world(int x, int y, int w, int h) {
       int vx = 0, vy = 0;
       get_viewport_size(vx, vy);
-      app_scene->begin_render(vx, vy);
+      app_scene->begin_render(vx, vy, vec4(0,0,0,0));
 
       //Move the camera with the mouse
       camera.update(app_scene->get_camera_instance(0)->get_node()->access_nodeToParent());
