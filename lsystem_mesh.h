@@ -56,6 +56,7 @@ namespace octet{
       int cur_iteration;
       float max_depth;
       bool visualize3D;
+      bool reduction_toggle;
       ///stack for the turtle position when generating blocks
       dynarray<ref<Block>> stack3d;
 
@@ -71,6 +72,7 @@ namespace octet{
           num_leaves.push_back(0);
         }
         visualize3D = false;
+        reduction_toggle = true;
         cur_iteration = 0;
         angle_Y = 80;
         default_angle = 0;
@@ -87,6 +89,18 @@ namespace octet{
         distance = default_distance;
         r_init = 0.1;
         r_reduction = RED_INIT;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void switch3d(){
+        visualize3D = !visualize3D;
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void switchReduction(){
+        reduction_toggle = !reduction_toggle;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -251,7 +265,10 @@ namespace octet{
               new_block->transform = back_stack->pos;
               new_block->transform.multMatrix(back_stack->transform);
               new_block->radio = back_stack->radio;
-              new_block->radio2 = back_stack->radio * r_reduction;
+              if (reduction_toggle)
+                new_block->radio2 = back_stack->radio * r_reduction;
+              else
+                new_block->radio2 = back_stack->radio;
               new_block->depth = back_stack->depth;
               //Add new block
               blocks[iteration].push_back(new_block);
@@ -313,6 +330,7 @@ namespace octet{
               break;
             }
           }//End for generation of blocks
+          last_block->radio2 = 0;
           //printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
 
@@ -346,7 +364,10 @@ namespace octet{
           size_t num_vertexes = PRECISION_CYLINDER * 2 * num_symbols[cur_iteration];
           size_t num_indices = PRECISION_CYLINDER * 6 * num_symbols[cur_iteration];
           allocate(sizeof(my_vertex) * num_vertexes, sizeof(uint32_t) * num_indices);
-          set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_TRIANGLES, GL_UNSIGNED_INT);
+          if (visualize3D)
+            set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_POINTS, GL_UNSIGNED_INT);
+          else
+            set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_TRIANGLES, GL_UNSIGNED_INT);
           if (get_num_slots() != 2){
             add_attribute(attribute_pos, 3, GL_FLOAT, 0);
             add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
@@ -381,6 +402,8 @@ namespace octet{
               float g = 0.4f + (0.5f * i / blocks[cur_iteration].size());
               float b = 0.3f + (0.2f * i / blocks[cur_iteration].size());
               vec3 pos_c = circle[j].pos*block_->radio; //Rotate with orientation
+              if (!reduction_toggle)
+                block_->radio2 = block_->radio2 *r_reduction;
               vec3 pos_c2 = circle[j].pos*block_->radio2; //Rotate with orientation
               //Obtain both sides of the cylinder
               vtx->pos = pos_1 + pos_c;
@@ -409,7 +432,6 @@ namespace octet{
             idx += 6;
           }
         }
-        
         //printf("Indices %d\n", get_num_indices());
       }
 

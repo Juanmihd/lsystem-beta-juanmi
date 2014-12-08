@@ -67,10 +67,10 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_h.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_a.ls");
+      temp_system->load_file("assets/lsystem/tree_i.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_b.ls");
+      temp_system->load_file("assets/lsystem/tree_j.ls");
       lsystems.push_back(temp_system);
       lsystem_mesh *temp_mesh;
       for (int i = 0; i != 10; ++i){
@@ -194,7 +194,7 @@ namespace octet {
       else if (is_key_down('E') && !is_key_down(key_ctrl)){
         app_scene->get_camera_instance(0)->get_node()->access_nodeToParent().translate(0, 0, 2.5);
       }
-      //TGFH control tree (rotate and up-down)
+      //AWSD + ctrl to control tree (rotate and up-down)
       else if (is_key_down('W') && is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(0, 1, 0));
       }
@@ -207,7 +207,7 @@ namespace octet {
       else if (is_key_down('D') && is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->rotate(-10, vec3(0, 1, 0));
       }
-      //B togles on-off the ground
+      //Q + ctrl togles on-off the ground
       else if (is_key_going_down('Q') && is_key_down(key_ctrl)){
         if (floor_on)
           floor_node->translate(vec3(_FAR_FAR_AWAY, _FAR_FAR_AWAY, _FAR_FAR_AWAY));
@@ -215,6 +215,11 @@ namespace octet {
           floor_node->translate(vec3(-_FAR_FAR_AWAY, -_FAR_FAR_AWAY, -_FAR_FAR_AWAY));
         floor_on = !floor_on;
       }
+      //E + ctrl togles the type of visualization
+      else if (is_key_going_down('E') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switch3d();
+      }
+      //ZX controles the radius
       else if (is_key_down('Z') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_radius();
       }
@@ -227,6 +232,7 @@ namespace octet {
       else if (is_key_down('X') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_radius_strong();
       }
+      //CV controls the angles
       else if (is_key_down('C') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_angle();
       }
@@ -239,12 +245,17 @@ namespace octet {
       else if (is_key_down('V') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->increase_angleY();
       }
-      else if (is_key_down('B')){
+      //BN controls the reduction of the radius
+      else if (is_key_down('B') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->decrease_reduction();
       }
-      else if (is_key_down('N')){
+      else if (is_key_down('N') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->increase_reduction();
       }
+      else if (is_key_going_down('N') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switchReduction();
+      }
+      //MJ controls the length of destiny
       else if (is_key_down('M')){
         lsystem_meshes[cur_lsystem]->decrease_distance();
       }
