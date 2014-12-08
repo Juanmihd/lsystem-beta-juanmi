@@ -12,7 +12,6 @@ namespace octet{
   /// This is the lsystem class. It will create an object that will control the l_system
   class lsystem : public resource{
     enum { DEBUG_LS_PARSER = 0, DEBUG_LS_GEN = 0, DEBUG_LS_DRAW = 0 };
-    enum _OPTIONS {_PROB, _ITER, _CONT, _POS_CON};
     /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
     struct dupla : public resource{
       char *left;
@@ -50,6 +49,10 @@ namespace octet{
     dynarray<uint8_t> buffer;
     char * currentChar;
     int restBuffer;
+    //Special boopleans for special rules
+    bool probability_rule;
+    bool iteration_rule;
+    bool contextual_rule;
 
     /// Get next char and reduce the size of the rest of the buffer
     void next_char(){
@@ -72,6 +75,7 @@ namespace octet{
       //But it may also be a "complex rule", SYMBOL:RULE PROBABILITY ITERATION CONTEXT POS_CONTEXT  
       if (dupla.right.size() > 1){
         //To fill later
+        printf("Special rule!");
       }
     }
 
@@ -158,10 +162,10 @@ namespace octet{
       }
       printf(":");
       for (unsigned i = 0; i != dupla_.right.size(); ++i){
+        printf("%i ", dupla_.size_right[i]); 
         for (unsigned j = 0; j != dupla_.size_right[i]; ++j){
           printf("%c", dupla_.right[i][j]);
         }
-        printf(" ");
       }
       printf("\n");
     }
@@ -244,6 +248,7 @@ namespace octet{
       }
       //Read number and type of rules
       if (left_side_is(new_dupla, "rules", 5)){
+        printf_dupla(new_dupla);
         int numInfo = new_dupla.right.size();
         size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
         rules.resize(size_rules);
@@ -252,12 +257,15 @@ namespace octet{
           // { _PROB, _ITER, _CONT, _POS_CON };
           if (new_dupla.right[i][0] == 'P'){
             printf("P!!!!!\n");
+            probability_rule = true;
           }
           else if (new_dupla.right[i][0] == 'I'){
             printf("I!!!!!\n");
+            iteration_rule = true;
           }
           else if (new_dupla.right[i][0] == 'C'){
             printf("C!!!!!\n");
+            contextual_rule = true;
           }
         }
         //Read rules
@@ -341,6 +349,9 @@ namespace octet{
       ini_iteration = 0;
       cur_iteration = 0;
       max_iteration = 0;
+      probability_rule = false;
+      iteration_rule = false;
+      contextual_rule = false;
       currentChar = (char*)buffer.data();
       bool no_error = decode_file();
       ini_generation();
