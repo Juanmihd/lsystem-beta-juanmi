@@ -424,12 +424,10 @@ namespace octet{
               float g = 0.4f + (0.5f * i / blocks[cur_iteration].size());
               float b = 0.3f + (0.2f * i / blocks[cur_iteration].size());
               vec3 pos_c = circle[j].pos*block_->radio; //Rotate with orientation
-              if (!reduction_toggle)
-                block_->radio2 = block_->radio2 *r_reduction;
-              vec3 pos_c2 = circle[j].pos*block_->radio2; //Rotate with orientation
+              vec3 pos_c2 = circle[j].pos*block_->radio2 * (!reduction_toggle ? r_reduction*r_reduction : 1); //Rotate with orientation
               //Obtain both sides of the cylinder
               vtx->pos = pos_1 + pos_c;
-              vtx->color = make_color(r, g, b);
+              vtx->color = make_color(r+0.1f, g+0.1f, b+0.1f);
               float t1, t2, t3;
               t1 = (pos_1.get()[0] + pos_c.get()[0]);
               t2 = (pos_1.get()[1] + pos_c.get()[1]);

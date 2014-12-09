@@ -151,11 +151,16 @@ namespace octet{
           new_dupla.size_right.push_back(size_new_right);
           new_right = currentChar;
           size_new_right = 0;
+          printf(" ");
         }
-        else
+        else{
           ++size_new_right;
+          printf("%c", *currentChar);
+        }
         next_char();
       }
+
+      printf("\n");
       if (size_new_right != 0){
         new_dupla.right.push_back(new_right);
         new_dupla.size_right.push_back(size_new_right);
@@ -260,8 +265,10 @@ namespace octet{
       }
       //Read number and type of rules
       if (left_side_is(new_dupla, "rules", 5)){
-        printf_dupla(new_dupla);
         int numInfo = new_dupla.right.size();
+        printf("Size right current dupla: %i\n", numInfo);
+        if (numInfo > 1)
+          printf("Ecco!");
         size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
         rules.resize(size_rules);
         for (int i = 1; i < numInfo; ++i){
@@ -294,7 +301,6 @@ namespace octet{
           symbol[0] = new_dupla.left[0];
           symbol[1] = '\0';
           int aux = alphabet[symbol.data()];
-          printf("%i\n", rules[aux].size());
           rules[aux].push_back(new_rule);
         }
       }
@@ -409,20 +415,20 @@ namespace octet{
       return words[cur_iteration].size();
     }
 
-    float get_angle(){
-      return ls_angle[1];
+    float get_angle(int i = 0){
+      return ls_angle[i];
     }
 
-    float get_distance(){
-      return ls_distance[0];
+    float get_distance(int i = 0){
+      return ls_distance[i];
     }
 
-    float set_angle(float angle_){
-      ls_angle[0] = angle_;
+    float set_angle(float angle_, int i = 0){
+      ls_angle[i] = angle_;
     }
 
-    float set_distance(float distance_){
-      ls_distance[0] = distance_;
+    float set_distance(float distance_, int i = 0){
+      ls_distance[i] = distance_;
     }
 
     /// Print the current iteration
