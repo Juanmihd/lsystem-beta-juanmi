@@ -340,7 +340,11 @@ namespace octet{
           }
           else
             size_output -= size_rule;
-          for (int i_rule = 0; i_rule < cur_rule->right.size(); ++i_rule){
+          for (int i_rule = 0; i_rule < size_rule; ++i_rule){
+            if (size_output == 0){
+              size_output = 1;
+              output.reserve(output.capacity() + 2);
+            }
             output.push_back(cur_rule->right[i_rule]);
           }
         }

@@ -43,6 +43,9 @@ namespace octet {
       floor_on = true;
       cur_lsystem = 0;
       lsystem *temp_system = new lsystem();
+      temp_system->load_file("assets/lsystem/tree_j.ls");
+      lsystems.push_back(temp_system);
+      temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_a.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
@@ -68,9 +71,6 @@ namespace octet {
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_i.ls");
-      lsystems.push_back(temp_system);
-      temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_j.ls");
       lsystems.push_back(temp_system);
       lsystem_mesh *temp_mesh;
       for (int i = 0; i != 10; ++i){
@@ -227,10 +227,10 @@ namespace octet {
         lsystem_meshes[cur_lsystem]->modify_radius(0.1);
       }
       else if (is_key_down('Z') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(0.5);
+        lsystem_meshes[cur_lsystem]->modify_radius(-0.5);
       }
       else if (is_key_down('X') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(-0.5);
+        lsystem_meshes[cur_lsystem]->modify_radius(0.5);
       }
       //CV controls the angles
       else if (is_key_down('C') && !is_key_down(key_ctrl)){

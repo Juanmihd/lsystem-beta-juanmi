@@ -145,6 +145,7 @@ namespace octet{
       ///This function is to apply a modifier to the radius
       void modify_radius(float value){
         r_init += value;
+        if (r_init < 0.05) r_init = 0.05;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -193,6 +194,7 @@ namespace octet{
 
       void decrease_distance(){
         distance -= 0.2;
+        distance = distance < 0.1 ? 0.1 : distance;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -269,6 +271,7 @@ namespace octet{
           Block *last_block;
           my_vertex *new_leaf;
           //Start generation
+          vec3 translation = vec3(0, distance, 0);
           for (int i = 0; i < size_words[iteration]; ++i){
             mat4t aux_matrix;
             vec4 aux_vector;
@@ -283,7 +286,7 @@ namespace octet{
               last_block = new_block;
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
-              new_block->transform.multMatrix(back_stack->transform);
+              new_block->transform.translate(translation);
               new_block->radio = back_stack->radio;
               if (reduction_toggle)
                 new_block->radio2 = back_stack->radio * r_reduction;
@@ -294,20 +297,8 @@ namespace octet{
               blocks[iteration].push_back(new_block);
               //Update turtle3d
               back_stack->pos = new_block->transform;
-              aux_vector = back_stack->transform.row(3);
-              back_stack->transform.loadIdentity();
               back_stack->radio = new_block->radio2;
               back_stack->depth += 1;
-              back_stack->transform.translate(aux_vector.xyz().normalize() * distance);
-              //Debuging things
-              /*  printf("New block pos:\n");
-              printf_mat4t(new_block->pos);
-              printf("New block transform:\n");
-              printf_mat4t(new_block->transform);
-              printf("Stack pos:\n");
-              printf_mat4t(back_stack->pos);
-              printf("Stack transform:\n");
-              printf_mat4t(back_stack->transform);*/
               break;
             case '[':
               //Reserve new block
@@ -324,30 +315,23 @@ namespace octet{
             case ']': //If it's popping add a leaf
               new_leaf = new my_vertex();
               new_leaf->pos = stack3d.back()->pos.row(3).xyz();
+              //leaves.push_back(new_leaf);
               if (leaf_mode == _POINTY)
                 last_block->radio2 = 0;
               stack3d.pop_back();
               back_stack = stack3d.back();
               break;
             case '+':
-              aux_matrix.loadIdentity();
-              aux_matrix.rotateX(angle_X);
-              back_stack->transform.multMatrix(aux_matrix);
+              back_stack->pos.rotateX(angle_X);
               break;
             case '-':
-              aux_matrix.loadIdentity();
-              aux_matrix.rotateX(-angle_X);
-              back_stack->transform.multMatrix(aux_matrix);
+              back_stack->pos.rotateX(-angle_X);
               break;
             case '<':
-              aux_matrix.loadIdentity();
-              aux_matrix.rotateY(angle_Y);
-              back_stack->transform.multMatrix(aux_matrix);
+              back_stack->pos.rotateY(angle_Y);
               break;
             case '>':
-              aux_matrix.loadIdentity();
-              aux_matrix.rotateY(-angle_Y);
-              back_stack->transform.multMatrix(aux_matrix);
+              back_stack->pos.rotateY(-angle_Y);
               break;
             }
           }//End for generation of blocks
@@ -427,7 +411,10 @@ namespace octet{
               vec3 pos_c2 = circle[j].pos*block_->radio2 * (!reduction_toggle ? r_reduction*r_reduction : 1); //Rotate with orientation
               //Obtain both sides of the cylinder
               vtx->pos = pos_1 + pos_c;
-              vtx->color = make_color(r+0.1f, g+0.1f, b+0.1f);
+              if (!reduction_toggle)
+                vtx->color = make_color(r + 0.1f, g + 0.1f, b + 0.1f);
+              else
+                vtx->color = make_color(r, g, b);
               float t1, t2, t3;
               t1 = (pos_1.get()[0] + pos_c.get()[0]);
               t2 = (pos_1.get()[1] + pos_c.get()[1]);
