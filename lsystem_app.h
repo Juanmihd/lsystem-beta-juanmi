@@ -221,16 +221,16 @@ namespace octet {
       }
       //ZX controles the radius
       else if (is_key_down('Z') && !is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(-0.1);
+        lsystem_meshes[cur_lsystem]->modify_radius(-0.05);
       }
       else if (is_key_down('X') && !is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(0.1);
+        lsystem_meshes[cur_lsystem]->modify_radius(0.05);
       }
       else if (is_key_down('Z') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(-0.5);
+        lsystem_meshes[cur_lsystem]->modify_radius(-0.1);
       }
       else if (is_key_down('X') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->modify_radius(0.5);
+        lsystem_meshes[cur_lsystem]->modify_radius(0.1);
       }
       //CV controls the angles
       else if (is_key_down('C') && !is_key_down(key_ctrl)){

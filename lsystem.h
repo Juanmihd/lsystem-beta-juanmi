@@ -151,16 +151,13 @@ namespace octet{
           new_dupla.size_right.push_back(size_new_right);
           new_right = currentChar;
           size_new_right = 0;
-          printf(" ");
         }
         else{
           ++size_new_right;
-          printf("%c", *currentChar);
         }
         next_char();
       }
 
-      printf("\n");
       if (size_new_right != 0){
         new_dupla.right.push_back(new_right);
         new_dupla.size_right.push_back(size_new_right);
@@ -274,6 +271,7 @@ namespace octet{
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
           // { _PROB, _ITER, _CONT, _POS_CON };
+          printf("\n%c--", new_dupla.right[i][0]);
           if (new_dupla.right[i][0] == 'P'){
             printf("P!!!!!\n");
             probability_rule = true;

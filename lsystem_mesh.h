@@ -385,13 +385,12 @@ namespace octet{
           uint32_t *idx = ilock.u32();
           unsigned nv = 0;
           unsigned ni = 0;
-          vertex circle[PRECISION_CYLINDER];
+          vec4 circle[PRECISION_CYLINDER];
           float angle_slice = 2 * 3.141592653f / PRECISION_CYLINDER;
           
           //Build the initial values of the cylinder without radius
           for (unsigned i = 0; i != PRECISION_CYLINDER; ++i){
-            circle[i].pos = vec3(sin(i*angle_slice), 0, cos(i*angle_slice));
-            circle[i].uv = vec2(0, 1);
+            circle[i]= vec4(cos(i*angle_slice), 0, sin(i*angle_slice), 1);
           }
 
           //Draw circles in given positions
@@ -400,31 +399,30 @@ namespace octet{
             float * mat_1 = block_->pos.get();
             float * mat_2 = block_->transform.get();
             //Get the bottom and top position of the block and it's orientation
-            vec3 pos_1 = vec3(mat_1[3 * 4], mat_1[3 * 4 + 1], mat_1[3 * 4 + 2]);
-            vec3 pos_2 = vec3(mat_2[3 * 4], mat_2[3 * 4 + 1], mat_2[3 * 4 + 2]);
+            vec4 pos_1 = vec4(mat_1[3 * 4], mat_1[3 * 4 + 1], mat_1[3 * 4 + 2],1);
+            vec4 pos_2 = vec4(mat_2[3 * 4], mat_2[3 * 4 + 1], mat_2[3 * 4 + 2], 1);
+            block_->pos[3] = vec4(0, 0, 0, 1);
+            block_->transform[3] = vec4(0, 0, 0, 1);
+            block_->pos = block_->pos.transpose4x4();
+            block_->transform = block_->transform.transpose4x4();
             for (unsigned j = 0; j != PRECISION_CYLINDER; ++j){
               //Obtain the rotated circle with that orientation
               float r = 0.4f + (0.4f * i / blocks[cur_iteration].size());
               float g = 0.4f + (0.5f * i / blocks[cur_iteration].size());
               float b = 0.3f + (0.2f * i / blocks[cur_iteration].size());
-              vec3 pos_c = circle[j].pos*block_->radio; //Rotate with orientation
-              vec3 pos_c2 = circle[j].pos*block_->radio2 * (!reduction_toggle ? r_reduction*r_reduction : 1); //Rotate with orientation
+              vec4 pos_c = circle[j]*block_->radio; //Rotate with orientation
+              vec4 pos_c2 = circle[j]*block_->radio2 * (!reduction_toggle ? r_reduction*r_reduction : 1); //Rotate with orientation
+              pos_c = block_->pos.rmul(pos_c);
+              pos_c2 = block_->transform.rmul(pos_c2);
               //Obtain both sides of the cylinder
-              vtx->pos = pos_1 + pos_c;
+              vtx->pos = pos_1.xyz() + pos_c.xyz();
               if (!reduction_toggle)
                 vtx->color = make_color(r + 0.1f, g + 0.1f, b + 0.1f);
               else
                 vtx->color = make_color(r, g, b);
-              float t1, t2, t3;
-              t1 = (pos_1.get()[0] + pos_c.get()[0]);
-              t2 = (pos_1.get()[1] + pos_c.get()[1]);
-              t3 = (pos_1.get()[2] + pos_c.get()[2]);
               vtx++;
-              vtx->pos = pos_2 + pos_c2;
+              vtx->pos = pos_2.xyz() + pos_c2.xyz();
               vtx->color = make_color(r, g, b);
-              t1 = (pos_2.get()[0] + pos_c2.get()[0]);
-              t2 = (pos_2.get()[1] + pos_c2.get()[1]);
-              t3 = (pos_2.get()[2] + pos_c2.get()[2]);
               vtx++;
               idx[0] = nv; idx[1] = nv + 1; idx[2] = nv + 3;
               idx[3] = nv; idx[4] = nv + 3; idx[5] = nv + 2;
