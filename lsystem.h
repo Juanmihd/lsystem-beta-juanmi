@@ -146,7 +146,6 @@ namespace octet{
       int size_new_right = 0;
       while (*currentChar != 0x0D && restBuffer > 0){
         if (*currentChar == 0x20){
-          next_char();
           new_dupla.right.push_back(new_right);
           new_dupla.size_right.push_back(size_new_right);
           new_right = currentChar;

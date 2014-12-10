@@ -95,65 +95,68 @@ namespace octet {
     /// this will receive inputs from the keyboard
     void keyboard(){
       //1-9 0 select l_system
-      if (is_key_going_down('1')){
+      if (is_key_going_down('1') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 1;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 1\n");
       }
-      else if (is_key_going_down('2')){
+      else if (is_key_going_down('2') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 2;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 2\n");
       }
-      else if (is_key_going_down('3')){
+      else if (is_key_going_down('3') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 3;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 3\n");
       }
-      else if (is_key_going_down('4')){
+      else if (is_key_going_down('4') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 4;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 4\n");
       }
-      else if (is_key_going_down('5')){
+      else if (is_key_going_down('5') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 5;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 5\n");
       }
-      else if (is_key_going_down('6')){
+      else if (is_key_going_down('6') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 6;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 6\n");
       }
-      else if (is_key_going_down('7')){
+      else if (is_key_going_down('7') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 7;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 7\n");
       }
-      else if (is_key_going_down('8')){
+      else if (is_key_going_down('8') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 8;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 8\n");
       }
-      else if (is_key_going_down('9')){
+      else if (is_key_going_down('9') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 9;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to tree 9\n");
       }
-      else if (is_key_going_down('0')){
+      else if (is_key_going_down('0') && !is_key_down(key_ctrl)){
         lsystem_nodes[cur_lsystem]->translate(vec3(_FAR_FAR_AWAY, 0, _FAR_FAR_AWAY));
         cur_lsystem = 0;
         lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
         //printf("Switch to initial tree\n");
+      }
+      else if (is_key_going_down('1') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->switch_leafs();
       }
       //O next step
       else if (is_key_going_down('O')){
@@ -288,6 +291,9 @@ namespace octet {
       }
       else if (is_key_going_down('Y') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_angle_random();
+      }
+      else if (is_key_going_down(key_space)){
+        lsystem_meshes[cur_lsystem]->update_generation();
       }
     }
 

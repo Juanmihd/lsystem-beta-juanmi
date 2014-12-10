@@ -26,6 +26,7 @@ namespace octet{
         float radio;
         float radio2;
         float depth;
+        bool is_leaf;
       };
 
       void printf_mat4t(mat4t & mat){
@@ -63,6 +64,7 @@ namespace octet{
       bool distance_random;
       bool angle_random;
       bool radius_random;
+      bool ignore_leafs;
       ///stack for the turtle position when generating blocks
       dynarray<ref<Block>> stack3d;
 
@@ -93,6 +95,7 @@ namespace octet{
         distance_random = false;
         angle_random = false;
         radius_random = false;
+        ignore_leafs = true;
         cur_iteration = 0;
         angle_Y = 80;
         default_angle = 0;
@@ -124,19 +127,32 @@ namespace octet{
         generate_iteration(cur_iteration);
       }
 
+      void update_generation(){
+        ls_generated[cur_iteration] = _NONE;
+        generate_iteration(cur_iteration);
+      }
+
+      void switch_leafs(){
+        ignore_leafs = !ignore_leafs;
+        update_generation();
+      }
+
       ///Enable/disable radius random mode
       void switch_radius_random(){
         radius_random = !radius_random;
+        update_generation();
       }
 
       ///Enable/disable distance random mode
       void switch_distance_random(){
         distance_random = !distance_random;
+        update_generation();
       }
 
       ///Enable/disable angle random mode
       void switch_angle_random(){
         angle_random = !angle_random;
+        update_generation();
       }
 
       ///This function switchs the type of visualization 
@@ -149,65 +165,55 @@ namespace octet{
       ///This function specifies the way to apply the reduction like a cone or individually
       void switchReduction(){
         reduction_toggle = !reduction_toggle;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       ///This function is to apply a modifier to the radius
       void modify_radius(float value){
         r_init += value;
         if (r_init < 0.05) r_init = 0.05;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void increase_reduction(){
         r_reduction -= 0.001;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void decrease_reduction(){
         r_reduction += 0.001;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void increase_angle(){
         angle_X += 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void decrease_angle(){
         angle_X -= 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void increase_angleY(){
         angle_Y += 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void decrease_angleY(){
         angle_Y -= 0.5;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void increase_distance(){
         distance += 0.2;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void decrease_distance(){
         distance -= 0.2;
         distance = distance < 0.1 ? 0.1 : distance;
-        ls_generated[cur_iteration] = _NONE;
-        generate_iteration(cur_iteration);
+        update_generation();
       }
 
       void init_values(float angle_, float distance_){
@@ -296,6 +302,7 @@ namespace octet{
               new_block = new Block();
               //Fill new block
               last_block = new_block;
+              new_block->is_leaf = false;
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.translate(translation);
@@ -329,6 +336,7 @@ namespace octet{
               new_leaf = new my_vertex();
               new_leaf->pos = stack3d.back()->pos.row(3).xyz();
               //leaves.push_back(new_leaf);
+              last_block->is_leaf = true;
               if (leaf_mode == _POINTY)
                 last_block->radio2 = 0;
               else if (leaf_mode == _HUGE)
@@ -350,6 +358,7 @@ namespace octet{
               break;
             }
           }//End for generation of blocks
+          last_block->is_leaf = true;
           if (leaf_mode == _POINTY)
             last_block->radio2 = 0;
           else if (leaf_mode == _HUGE)
@@ -413,6 +422,8 @@ namespace octet{
           //Draw circles in given positions
           for (unsigned i = 0; i != blocks[cur_iteration].size(); ++i){
             Block *block_ = blocks[cur_iteration][i];
+            if (ignore_leafs)
+              block_->is_leaf = false;
             float * mat_1 = block_->pos.get();
             float * mat_2 = block_->transform.get();
             //Get the bottom and top position of the block and it's orientation
@@ -425,21 +436,26 @@ namespace octet{
             for (unsigned j = 0; j != PRECISION_CYLINDER; ++j){
               //Obtain the rotated circle with that orientation
               float r = 0.4f + (0.4f * i / blocks[cur_iteration].size());
-              float g = 0.4f + (0.5f * i / blocks[cur_iteration].size());
-              float b = 0.3f + (0.2f * i / blocks[cur_iteration].size());
+              float g = 0.0f + (0.5f * i / blocks[cur_iteration].size());
+              float b = 0.0f + (0.2f * i / blocks[cur_iteration].size());
               vec4 pos_c = circle[j]*block_->radio; //Rotate with orientation
               vec4 pos_c2 = circle[j]*block_->radio2 * (!reduction_toggle ? r_reduction*r_reduction : 1); //Rotate with orientation
               pos_c = block_->pos.rmul(pos_c);
               pos_c2 = block_->transform.rmul(pos_c2);
               //Obtain both sides of the cylinder
               vtx->pos = pos_1.xyz() + pos_c.xyz();
-              if (!reduction_toggle)
+              if (block_->is_leaf)
+                vtx->color = make_color(0.1f, 1.0f, 0.1f);
+              else if (!reduction_toggle)
                 vtx->color = make_color(r + 0.1f, g + 0.1f, b + 0.1f);
               else
                 vtx->color = make_color(r, g, b);
               vtx++;
               vtx->pos = pos_2.xyz() + pos_c2.xyz();
-              vtx->color = make_color(r, g, b);
+              if (block_->is_leaf)
+                vtx->color = make_color(0.1f, 8.1f, 0.1f);
+              else
+                vtx->color = make_color(r, g, b);
               vtx++;
               idx[0] = nv; idx[1] = nv + 1; idx[2] = nv + 3;
               idx[3] = nv; idx[4] = nv + 3; idx[5] = nv + 2;
