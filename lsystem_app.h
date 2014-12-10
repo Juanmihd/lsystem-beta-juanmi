@@ -262,7 +262,7 @@ namespace octet {
       else if (is_key_down('J')){
         lsystem_meshes[cur_lsystem]->increase_distance();
       }
-      else if (is_key_going_down('R')){
+      else if (is_key_going_down('R') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->reset();
       }
       else if (is_key_down('F') && !is_key_down(key_ctrl)){
@@ -274,13 +274,19 @@ namespace octet {
       else if (is_key_down('H') && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->set_leaf_mode(1);
       }
-      else if (is_key_going_down('F') && is_key_down(key_ctrl)){
+      else if (is_key_down('G') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(2);
+      }
+      else if (is_key_down('H') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(3);
+      }
+      else if (is_key_going_down('R') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_radius_random();
       }
-      else if (is_key_going_down('G') && is_key_down(key_ctrl)){
+      else if (is_key_going_down('T') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_distance_random();
       }
-      else if (is_key_going_down('H') && is_key_down(key_ctrl)){
+      else if (is_key_going_down('Y') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_angle_random();
       }
     }

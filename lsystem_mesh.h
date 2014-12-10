@@ -5,7 +5,7 @@
 namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
-    enum type_leaf{ _FLAT = -1, _POINTY = 0, _MESH = 1, _RANDOM = 2 };
+    enum type_leaf{ _FLAT = -1, _POINTY = 0, _MESH = 1, _RANDOM = 2, _HUGE = 3 };
     enum { PRECISION_CYLINDER = 30, RED_INIT = 1 };
     class lsystem_mesh : public mesh{
 
@@ -38,6 +38,7 @@ namespace octet{
         }
       }
       
+      random rand;
       ///info for each one of the lsystem generated
       dynarray<dynarray<ref<Block>>> blocks;
       dynarray<my_vertex> leaves;
@@ -64,6 +65,16 @@ namespace octet{
       bool radius_random;
       ///stack for the turtle position when generating blocks
       dynarray<ref<Block>> stack3d;
+
+      float lerp(float v1, float v2, float t, float max_t){
+        return v1 + (v2 - v1)*(t / max_t);
+      }
+
+      float lerp(float v1, float v2, int t, int max_t){
+        float t_ = t;
+        float max_t_ = max_t;
+        return lerp(v1, v2, t_, max_t_);
+      }
 
     public:
       lsystem_mesh(){
@@ -266,13 +277,14 @@ namespace octet{
           back_stack->transform.loadIdentity();
           back_stack->transform.translate(0, distance, 0);
           back_stack->depth = 0;
+          max_depth = 0;
           stack3d.push_back(back_stack);
           Block *new_block;
           Block *last_block;
           my_vertex *new_leaf;
           //Start generation
-          vec3 translation = vec3(0, distance, 0);
           for (int i = 0; i < size_words[iteration]; ++i){
+            vec3 translation = vec3(0, distance* (distance_random ? rand.get(0.8f, 1.2f) : 1), 0);
             mat4t aux_matrix;
             vec4 aux_vector;
             char symbol = words[iteration][i];
@@ -287,7 +299,7 @@ namespace octet{
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.translate(translation);
-              new_block->radio = back_stack->radio;
+              new_block->radio = back_stack->radio * (radius_random?rand.get(0.8f,1.2f):1);
               if (reduction_toggle)
                 new_block->radio2 = back_stack->radio * r_reduction;
               else
@@ -299,6 +311,7 @@ namespace octet{
               back_stack->pos = new_block->transform;
               back_stack->radio = new_block->radio2;
               back_stack->depth += 1;
+              max_depth = (back_stack->depth < max_depth)? max_depth : back_stack->depth;
               break;
             case '[':
               //Reserve new block
@@ -318,25 +331,29 @@ namespace octet{
               //leaves.push_back(new_leaf);
               if (leaf_mode == _POINTY)
                 last_block->radio2 = 0;
+              else if (leaf_mode == _HUGE)
+                last_block->radio2 = last_block->radio * 3;
               stack3d.pop_back();
               back_stack = stack3d.back();
               break;
             case '+':
-              back_stack->pos.rotateX(angle_X);
+              back_stack->pos.rotateX(angle_X * (angle_random?rand.get(0.8f,1.2f):1));
               break;
             case '-':
-              back_stack->pos.rotateX(-angle_X);
+              back_stack->pos.rotateX(-angle_X * (angle_random ? rand.get(0.8f, 1.2f) : 1));
               break;
             case '<':
-              back_stack->pos.rotateY(angle_Y);
+              back_stack->pos.rotateY(angle_Y * (angle_random ? rand.get(0.8f, 1.2f) : 1));
               break;
             case '>':
-              back_stack->pos.rotateY(-angle_Y);
+              back_stack->pos.rotateY(-angle_Y * (angle_random ? rand.get(0.8f, 1.2f) : 1));
               break;
             }
           }//End for generation of blocks
           if (leaf_mode == _POINTY)
             last_block->radio2 = 0;
+          else if (leaf_mode == _HUGE)
+            last_block->radio2 = last_block->radio * 3;
           //printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
 
