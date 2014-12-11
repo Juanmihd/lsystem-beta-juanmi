@@ -56,6 +56,9 @@ namespace octet{
       float r_reduction;
       float default_angle;
       float default_distance;
+      float angle_random_factor;
+      float radius_random_factor;
+      float distance_random_factor;
       type_leaf leaf_mode;
       int cur_iteration;
       float max_depth;
@@ -95,6 +98,9 @@ namespace octet{
         distance_random = false;
         angle_random = false;
         radius_random = false;
+        distance_random_factor = 0.2f;
+        angle_random_factor = 0.2f;
+        radius_random_factor = 0.2f;
         ignore_leafs = true;
         cur_iteration = 0;
         angle_Y = 80;
@@ -123,6 +129,9 @@ namespace octet{
         distance_random = false;
         radius_random = false;
         angle_random = false;
+        distance_random_factor = 0.2f;
+        angle_random_factor = 0.2f;
+        radius_random_factor = 0.2f;
         ls_generated[cur_iteration] = _NONE;
         generate_iteration(cur_iteration);
       }
@@ -175,6 +184,27 @@ namespace octet{
         update_generation();
       }
 
+      ///This function is to apply a modifier to the radius
+      void modify_radius_random_factor(float value){
+        radius_random_factor += value;
+        if (radius_random_factor < 0) radius_random_factor = 0;
+        update_generation();
+      }
+
+      ///This function is to apply a modifier to the radius
+      void modify_distance_random_factor(float value){
+        distance_random_factor += value;
+        if (distance_random_factor < 0) distance_random_factor = 0;
+        update_generation();
+      }
+
+      ///This function is to apply a modifier to the radius
+      void modify_angle_random_factor(float value){
+        angle_random_factor += value;
+        if (angle_random_factor < 0) angle_random_factor = 0;
+        update_generation();
+      }
+
       void increase_reduction(){
         r_reduction -= 0.001;
         update_generation();
@@ -192,6 +222,7 @@ namespace octet{
 
       void decrease_angle(){
         angle_X -= 0.5;
+        if (angle_X < 0) angle_X = 0;
         update_generation();
       }
 
@@ -202,6 +233,7 @@ namespace octet{
 
       void decrease_angleY(){
         angle_Y -= 0.5;
+        if (angle_Y < 0) angle_Y = 0;
         update_generation();
       }
 
@@ -293,7 +325,7 @@ namespace octet{
           my_vertex *new_leaf;
           //Start generation
           for (int i = 0; i < size_words[iteration]; ++i){
-            vec3 translation = vec3(0, distance* (distance_random ? rand.get(0.8f, 1.2f) : 1), 0);
+            vec3 translation = vec3(0, distance* (distance_random ? rand.get(1-distance_random_factor, 1+distance_random_factor) : 1), 0);
             mat4t aux_matrix;
             vec4 aux_vector;
             char symbol = words[iteration][i];
@@ -309,7 +341,7 @@ namespace octet{
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
               new_block->transform.translate(translation);
-              new_block->radio = back_stack->radio * (radius_random?rand.get(0.8f,1.2f):1);
+              new_block->radio = back_stack->radio * (radius_random ? rand.get(1-radius_random_factor, 1+radius_random_factor) : 1);
               if (reduction_toggle)
                 new_block->radio2 = back_stack->radio * r_reduction;
               else
@@ -348,16 +380,16 @@ namespace octet{
               back_stack = stack3d.back();
               break;
             case '+':
-              back_stack->pos.rotateX(angle_X * (angle_random?rand.get(0.8f,1.2f):1));
+              back_stack->pos.rotateX(angle_X * (angle_random ? rand.get(1-angle_random_factor, 1+angle_random_factor) : 1));
               break;
             case '-':
-              back_stack->pos.rotateX(-angle_X * (angle_random ? rand.get(0.8f, 1.2f) : 1));
+              back_stack->pos.rotateX(-angle_X * (angle_random ? rand.get(1-angle_random_factor, 1+angle_random_factor) : 1));
               break;
             case '<':
-              back_stack->pos.rotateY(angle_Y * (angle_random ? rand.get(0.8f, 1.2f) : 1));
+              back_stack->pos.rotateY(angle_Y * (angle_random ? rand.get(1-angle_random_factor, 1+angle_random_factor) : 1));
               break;
             case '>':
-              back_stack->pos.rotateY(-angle_Y * (angle_random ? rand.get(0.8f, 1.2f) : 1));
+              back_stack->pos.rotateY(-angle_Y * (angle_random ? rand.get(1-angle_random_factor, 1+angle_random_factor) : 1));
               break;
             }
           }//End for generation of blocks

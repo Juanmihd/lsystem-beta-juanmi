@@ -158,6 +158,24 @@ namespace octet {
       else if (is_key_going_down('1') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_leafs();
       }
+      else if (is_key_down('2') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_radius_random_factor(-0.05f);
+      }
+      else if (is_key_down('3') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_radius_random_factor(0.05f);
+      }
+      else if (is_key_down('4') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_distance_random_factor(-0.05f);
+      }
+      else if (is_key_down('5') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_distance_random_factor(0.05f);
+      }
+      else if (is_key_down('6') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_angle_random_factor(-0.05f);
+      }
+      else if (is_key_down('7') && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_angle_random_factor(0.05f);
+      }
       //O next step
       else if (is_key_going_down('O')){
         lsystems[cur_lsystem]->next();
@@ -298,12 +316,11 @@ namespace octet {
         lsystem_meshes[cur_lsystem]->update_generation();
       }
       else if (is_key_going_down(key_space) && is_key_down(key_ctrl)){
-        int cur_iteration = lsystems[cur_lsystem]->get_iteration();
         lsystems[cur_lsystem]->recalculate();
-        lsystems[cur_lsystem]->go_to(cur_iteration);
+        int cur_iteration = lsystems[cur_lsystem]->get_iteration();
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
-        lsystem_meshes[cur_lsystem]->reset();
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
+        lsystem_meshes[cur_lsystem]->update_generation();
       }
     }
 

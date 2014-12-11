@@ -327,7 +327,7 @@ namespace octet{
           rule * cur_rule;
           if (num_rules > 1){
             float rand_value = rand.get(0.0f, 1.0f);
-            printf("%f\n", rand_value);
+            //printf("%f\n", rand_value);
             int i_rule;
             bool rule_find = false;
             for (i_rule = 0; i_rule < num_rules && !rule_find; ++i_rule){
@@ -401,6 +401,24 @@ namespace octet{
     }
 
     void recalculate(){
+      for (int i = 0; i < words.size(); ++i)
+        words[i].reset();
+      words.reset();
+      for (int i = 0; i < rules.size(); ++i)
+        rules[i].reset();
+      rules.reset();
+      alphabet.reset();
+      ls_angle.reset();
+      ls_distance.reset();
+      restBuffer = buffer.size();
+      ini_iteration = 0;
+      cur_iteration = 0;
+      max_iteration = 0;
+      probability_rule = false;
+      iteration_rule = false;
+      contextual_rule = false;
+      currentChar = (char*)buffer.data();
+      bool no_error = decode_file();
       ini_generation();
     }
 
