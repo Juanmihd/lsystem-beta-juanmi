@@ -41,7 +41,7 @@ namespace octet {
       app_scene->add_child(floor_node);
       app_scene->add_mesh_instance(new mesh_instance(floor_node, floor, green));
       floor_on = true;
-      cur_lsystem = 0;
+      cur_lsystem = 1;
       lsystem *temp_system = new lsystem();
       temp_system->load_file("assets/lsystem/tree_j.ls");
       lsystems.push_back(temp_system);
@@ -88,7 +88,7 @@ namespace octet {
         lsystem_meshes[i]->input_word(lsystems[i]->get_iteration(), lsystems[i]->get_word(), lsystems[i]->get_size_word());
         app_scene->add_mesh_instance(new mesh_instance(node, lsystem_meshes[i], red));
       }
-      lsystem_nodes[0]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
+      lsystem_nodes[cur_lsystem]->translate(vec3(-_FAR_FAR_AWAY, 0, -_FAR_FAR_AWAY));
       camera.init(this, 1, 100);
     }
 
@@ -316,8 +316,9 @@ namespace octet {
         lsystem_meshes[cur_lsystem]->update_generation();
       }
       else if (is_key_going_down(key_space) && is_key_down(key_ctrl)){
-        lsystems[cur_lsystem]->recalculate();
         int cur_iteration = lsystems[cur_lsystem]->get_iteration();
+        lsystems[cur_lsystem]->recalculate();
+        lsystems[cur_lsystem]->go_to(cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
         lsystem_meshes[cur_lsystem]->update_generation();

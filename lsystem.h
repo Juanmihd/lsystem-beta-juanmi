@@ -266,21 +266,17 @@ namespace octet{
       //Read number and type of rules
       if (left_side_is(new_dupla, "rules", 5)){
         int numInfo = new_dupla.right.size();
-        printf("Size right current dupla: %i\n", numInfo);
         size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
           // { _PROB, _ITER, _CONT, _POS_CON };
           if (new_dupla.right[i][0] == 'P'){
-            printf("P!!!!!\n");
             probability_rule = true;
           }
           else if (new_dupla.right[i][0] == 'I'){
-            printf("I!!!!!\n");
             iteration_rule = true;
           }
           else if (new_dupla.right[i][0] == 'C'){
-            printf("C!!!!!\n");
             contextual_rule = true;
           }
         }
@@ -299,9 +295,6 @@ namespace octet{
           symbol[1] = '\0';
           int aux = alphabet[symbol.data()];
           rules[aux].push_back(new_rule);
-          if (rules[aux].size() > 1){
-            printf("JAJA!");
-          }
         }
       }
       return true;
