@@ -165,6 +165,7 @@ namespace octet {
         //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
+        lsystem_meshes[cur_lsystem]->update_generation();
       }
       //L previous step
       else if (is_key_going_down('L')){
@@ -173,6 +174,7 @@ namespace octet {
         //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
+        lsystem_meshes[cur_lsystem]->update_generation();
       }
       //P print current word
       else if (is_key_going_down('P')){
@@ -292,8 +294,16 @@ namespace octet {
       else if (is_key_going_down('Y') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_angle_random();
       }
-      else if (is_key_going_down(key_space)){
+      else if (is_key_going_down(key_space) && !is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->update_generation();
+      }
+      else if (is_key_going_down(key_space) && is_key_down(key_ctrl)){
+        int cur_iteration = lsystems[cur_lsystem]->get_iteration();
+        lsystems[cur_lsystem]->recalculate();
+        lsystems[cur_lsystem]->go_to(cur_iteration);
+        lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
+        lsystem_meshes[cur_lsystem]->reset();
+        lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
       }
     }
 

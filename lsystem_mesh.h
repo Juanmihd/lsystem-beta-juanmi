@@ -254,6 +254,14 @@ namespace octet{
         //check if it has been already generated
         //printf("Inputing new word\n");
         cur_iteration = iteration;
+
+        //Set up the generation
+        if (blocks.size() <= (unsigned)iteration){
+          blocks.resize(iteration + 1);
+          ls_generated.resize(iteration + 1);
+          num_symbols.resize(iteration + 1);
+          num_leaves.resize(iteration + 1);
+        }
         if (ls_generated[iteration] == _GENERATED){ //already generated
           //printf("Nothing to generate here. But it may be needed to update!\n");
         }
@@ -267,11 +275,6 @@ namespace octet{
               ++num_symbols[iteration];
             else if (words[iteration][i] == ']')
               ++num_leaves[iteration];
-          }
-
-          //Set up the generation
-          if (blocks.size() < (unsigned)iteration){
-            blocks.resize(iteration + 1);
           }
           blocks[iteration].reset();
 

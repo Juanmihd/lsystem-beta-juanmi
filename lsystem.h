@@ -53,6 +53,8 @@ namespace octet{
     bool probability_rule;
     bool iteration_rule;
     bool contextual_rule;
+    //For random rules
+    random rand;
 
     /// Get next char and reduce the size of the rest of the buffer
     void next_char(){
@@ -75,7 +77,7 @@ namespace octet{
       //But it may also be a "complex rule", SYMBOL:RULE PROBABILITY ITERATION CONTEXT POS_CONTEXT  
       if (dupla.right.size() > 1){
         //To fill later
-        printf("Special rule!");
+        new_rule->probability = get_float(dupla.right[1], dupla.size_right[1]);
       }
     }
 
@@ -146,10 +148,12 @@ namespace octet{
       int size_new_right = 0;
       while (*currentChar != 0x0D && restBuffer > 0){
         if (*currentChar == 0x20){
+          while (*currentChar == 0x20)
+            next_char();
           new_dupla.right.push_back(new_right);
           new_dupla.size_right.push_back(size_new_right);
           new_right = currentChar;
-          size_new_right = 0;
+          size_new_right = 1;
         }
         else{
           ++size_new_right;
@@ -263,14 +267,10 @@ namespace octet{
       if (left_side_is(new_dupla, "rules", 5)){
         int numInfo = new_dupla.right.size();
         printf("Size right current dupla: %i\n", numInfo);
-        if (numInfo > 1)
-          printf("Ecco!");
         size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
-        rules.resize(size_rules);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
           // { _PROB, _ITER, _CONT, _POS_CON };
-          printf("\n%c--", new_dupla.right[i][0]);
           if (new_dupla.right[i][0] == 'P'){
             printf("P!!!!!\n");
             probability_rule = true;
@@ -287,7 +287,7 @@ namespace octet{
         //Read rules
         dynarray<char> symbol;
         symbol.resize(2);
-        rules.reserve(size_rules);
+        rules.resize(alphabet.get_size());
         while (size_rules > 0){
           get_new_dupla_line(new_dupla);
           --size_rules;
@@ -299,25 +299,18 @@ namespace octet{
           symbol[1] = '\0';
           int aux = alphabet[symbol.data()];
           rules[aux].push_back(new_rule);
+          if (rules[aux].size() > 1){
+            printf("JAJA!");
+          }
         }
       }
       return true;
     }
 
-    ///Will generate the tree to the initial generation. The starting point is max_iteration = 0, and cur_iteration = 0, with ini_iteration the objective
-    void ini_generation(){
-      for (int i = 1; i <= ini_iteration; ++i){
-        produce_next_word(words[i], words[i-1]);
-        if(DEBUG_LS_GEN) printf_word(i);
-      }
-      cur_iteration = ini_iteration;
-      max_iteration = ini_iteration;
-    }
-
     /// Generates the next iteration of the l_system given a input
     void produce_next_word(dynarray<char> &output, const dynarray<char> &input){
       int size_input = input.size();
-      int size_output = size_input * 5;
+      int size_output = size_input;
       output.reserve(size_output);
       for (int i = 0; i < size_input; ++i){
         char symbol[2];
@@ -329,10 +322,29 @@ namespace octet{
         }
         else{
           int value_symbol = alphabet[symbol];
-          rule * cur_rule = rules[value_symbol][0];
+          int num_rules = rules[value_symbol].size();
+          //Obtain the rule to be applied
+          rule * cur_rule;
+          if (num_rules > 1){
+            float rand_value = rand.get(0.0f, 1.0f);
+            printf("%f\n", rand_value);
+            int i_rule;
+            bool rule_find = false;
+            for (i_rule = 0; i_rule < num_rules && !rule_find; ++i_rule){
+              rule_find = (rules[value_symbol][i_rule]->probability > rand_value);
+            }
+            cur_rule = rules[value_symbol][i_rule-1];
+          } else{
+            cur_rule = rules[value_symbol][0];
+          }
           int size_rule = cur_rule->right.size();
+          if (output.capacity() - output.size() > 10000){
+            printf("what?");
+            output.reserve(output.size());
+            size_output = 0;
+          }
           if (size_output <= size_rule){
-            output.reserve(output.capacity() + size_rule * 2);
+            output.reserve(output.size() + size_rule * 2);
             size_output += size_rule;
           }
           else
@@ -343,15 +355,26 @@ namespace octet{
               output.reserve(output.capacity() + 2);
             }
             output.push_back(cur_rule->right[i_rule]);
+            --size_output;
           }
         }
       }
     }
 
+    ///Will generate the tree to the initial generation. The starting point is max_iteration = 0, and cur_iteration = 0, with ini_iteration the objective
+    void ini_generation(){
+      for (int i = 1; i <= ini_iteration; ++i){
+        produce_next_word(words[i], words[i - 1]);
+        if (DEBUG_LS_GEN) printf_word(i);
+      }
+      cur_iteration = ini_iteration;
+      max_iteration = ini_iteration;
+    }
+
     /// Obtains next word
     void generate_new_word(){
-      if (words.size() < cur_iteration)
-        words.reserve(cur_iteration + 5);
+      if (words.size() <= cur_iteration)
+        words.resize(cur_iteration + 5);
       //printf("L_system_word\n");
       produce_next_word(words[cur_iteration], words[max_iteration]);
       //printf("L_system_word DONE\n");
@@ -375,6 +398,10 @@ namespace octet{
       bool no_error = decode_file();
       ini_generation();
       return no_error;
+    }
+
+    void recalculate(){
+      ini_generation();
     }
 
     /// Go to a given iteration of the l_system
