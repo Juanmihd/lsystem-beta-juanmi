@@ -326,14 +326,19 @@ namespace octet{
           //Obtain the rule to be applied
           rule * cur_rule;
           if (num_rules > 1){
-            float rand_value = rand.get(0.0f, 1.0f);
-            //printf("%f\n", rand_value);
-            int i_rule;
-            bool rule_find = false;
-            for (i_rule = 0; i_rule < num_rules && !rule_find; ++i_rule){
-              rule_find = (rules[value_symbol][i_rule]->probability > rand_value);
+            if (probability_rule){
+              float rand_value = rand.get(0.0f, 1.0f);
+              //printf("%f\n", rand_value);
+              int i_rule;
+              bool rule_find = false;
+              for (i_rule = 0; i_rule < num_rules && !rule_find; ++i_rule){
+                rule_find = (rules[value_symbol][i_rule]->probability > rand_value);
+              }
+              cur_rule = rules[value_symbol][i_rule - 1];
             }
-            cur_rule = rules[value_symbol][i_rule-1];
+            else{
+              cur_rule = rules[value_symbol][0];
+            }
           } else{
             cur_rule = rules[value_symbol][0];
           }

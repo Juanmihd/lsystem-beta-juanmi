@@ -6,7 +6,7 @@ namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
     enum type_leaf{ _FLAT = -1, _POINTY = 0, _MESH = 1, _RANDOM = 2, _HUGE = 3 };
-    enum { PRECISION_CYLINDER = 30, RED_INIT = 1 };
+    enum { PRECISION_CYLINDER = 5, RED_INIT = 1 };
     class lsystem_mesh : public mesh{
 
       struct my_vertex{
@@ -428,18 +428,18 @@ namespace octet{
           ls_generated[cur_iteration] = _GENERATED;
 
           //Reserve space for the vertexes and indices
-          size_t num_vertexes = PRECISION_CYLINDER * 2 * num_symbols[cur_iteration];
-          size_t num_indices = PRECISION_CYLINDER * 6 * num_symbols[cur_iteration];
+          size_t num_vertexes = PRECISION_CYLINDER * 2 * blocks[cur_iteration].size();
+          size_t num_indices = PRECISION_CYLINDER * 6 * blocks[cur_iteration].size();
           allocate(sizeof(my_vertex) * num_vertexes, sizeof(uint32_t) * num_indices);
           if (visualize3D)
             set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_POINTS, GL_UNSIGNED_INT);
           else
             set_params(sizeof(my_vertex), num_indices, num_vertexes, GL_TRIANGLES, GL_UNSIGNED_INT);
-          if (get_num_slots() != 2){
-            add_attribute(attribute_pos, 3, GL_FLOAT, 0);
-            add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
-          }
           
+          clear_attributes();
+          add_attribute(attribute_pos, 3, GL_FLOAT, 0);
+          add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+
           gl_resource::wolock vlock(get_vertices());
           my_vertex *vtx = (my_vertex*)vlock.u8();
           gl_resource::wolock ilock(get_indices());
@@ -496,6 +496,7 @@ namespace octet{
               idx[3] = nv; idx[4] = nv + 3; idx[5] = nv + 2;
               idx += 6;
               nv += 2;
+              ni += 6;
             }
             //Fix last 3 of the last 6 indices to complete the cylinder
             idx -= 6;
@@ -504,8 +505,8 @@ namespace octet{
             idx[5] = nv - 2 * PRECISION_CYLINDER;
             idx += 6;
           }
+         
         }
-        //printf("Indices %d\n", get_num_indices());
       }
 
 
