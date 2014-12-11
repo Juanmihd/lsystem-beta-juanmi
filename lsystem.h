@@ -12,8 +12,8 @@ namespace octet{
   /// This is the lsystem class. It will create an object that will control the l_system
   class lsystem : public resource{
     enum { DEBUG_LS_PARSER = 0, DEBUG_LS_GEN = 0, DEBUG_LS_DRAW = 0 };
-    /// This struct contain the information of a dupla (left word, with a size, and a list of right words, with a size) 
-    struct dupla : public resource{
+    /// This struct contain the information of a tuple (left word, with a size, and a list of right words, with a size) 
+    struct tuple : public resource{
       char *left;
       int size_left;
       dynarray<char *> right;
@@ -62,22 +62,25 @@ namespace octet{
       --restBuffer;
     }
     
-    /// Copies the rupla contained into the dupla into the new_rule
-    void copy_rule(rule *new_rule, const dupla &dupla){
+    /// Copies the rupla contained into the tuple into the new_rule
+    void copy_rule(rule *new_rule, const tuple &tuple){
       //Every rule is a "simple rule", SYMBOL:RULE
       //Copy right part
-      int size_rule = dupla.size_right[0];
+      int size_rule = tuple.size_right[0];
       for (int i = 0; i < size_rule; ++i){
-        new_rule->right.push_back(dupla.right[0][i]);
+        new_rule->right.push_back(tuple.right[0][i]);
       }
       new_rule->pos_in_context = -1;
       new_rule->iteration = -1;
       new_rule->probability = 1.0f;
       
       //But it may also be a "complex rule", SYMBOL:RULE PROBABILITY ITERATION CONTEXT POS_CONTEXT  
-      if (dupla.right.size() > 1){
+      if (tuple.right.size() > 1){
         //To fill later
-        new_rule->probability = get_float(dupla.right[1], dupla.size_right[1]);
+        if (probability_rule)
+          new_rule->probability = get_float(tuple.right[1], tuple.size_right[1]);
+        else if (iteration_rule)
+          new_rule->iteration = get_int(tuple.right[1], tuple.size_right[1]);
       }
     }
 
@@ -121,26 +124,26 @@ namespace octet{
       return number;
     }
 
-    /// This function check if a char is the left part of the dupla is equal to a given char
-    ///   It receives a dupla and also the word it like to be compared into, with the size of the word, and it returns true if equal or false if different
-    bool left_side_is(const dupla &new_dupla, char *word2, int size){
-      bool equal = new_dupla.size_left == size;
+    /// This function check if a char is the left part of the tuple is equal to a given char
+    ///   It receives a tuple and also the word it like to be compared into, with the size of the word, and it returns true if equal or false if different
+    bool left_side_is(const tuple &new_tuple, char *word2, int size){
+      bool equal = new_tuple.size_left == size;
       for (int i = 0; i < size && equal; ++i){
-        equal = new_dupla.left[i] == word2[i];
+        equal = new_tuple.left[i] == word2[i];
       }
       return equal;
     }
 
-    ///@brief Get the new "dupla" with the left side and the right side
-    ///@param new_dupla The dupla where it will read
+    ///@brief Get the new "tuple" with the left side and the right side
+    ///@param new_tuple The tuple where it will read
     ///@return  True if it went well or false if it went father that the rest of the buffer
-    bool get_new_dupla_line(dupla &new_dupla){
-      new_dupla.left = currentChar;
-      new_dupla.size_left = 0;
-      new_dupla.right.reset();
-      new_dupla.size_right.reset();
+    bool get_new_tuple_line(tuple &new_tuple){
+      new_tuple.left = currentChar;
+      new_tuple.size_left = 0;
+      new_tuple.right.reset();
+      new_tuple.size_right.reset();
       while (*currentChar != ':' && restBuffer > 0){
-        ++new_dupla.size_left;
+        ++new_tuple.size_left;
         next_char();
       }
       next_char();
@@ -150,8 +153,8 @@ namespace octet{
         if (*currentChar == 0x20){
           while (*currentChar == 0x20)
             next_char();
-          new_dupla.right.push_back(new_right);
-          new_dupla.size_right.push_back(size_new_right);
+          new_tuple.right.push_back(new_right);
+          new_tuple.size_right.push_back(size_new_right);
           new_right = currentChar;
           size_new_right = 1;
         }
@@ -162,26 +165,26 @@ namespace octet{
       }
 
       if (size_new_right != 0){
-        new_dupla.right.push_back(new_right);
-        new_dupla.size_right.push_back(size_new_right);
+        new_tuple.right.push_back(new_right);
+        new_tuple.size_right.push_back(size_new_right);
       }
       next_char();
       if (*currentChar == 0x0A)
         next_char();
-      if(DEBUG_LS_PARSER) printf_dupla(new_dupla);
+      if(DEBUG_LS_PARSER) printf_tuple(new_tuple);
       return restBuffer > 0;
     }
 
-    /// This funcion receives a dupla and prints it out
-    void printf_dupla(const dupla &dupla_){
-      for (int i = 0; i < dupla_.size_left; ++i){
-        printf("%c", dupla_.left[i]);
+    /// This funcion receives a tuple and prints it out
+    void printf_tuple(const tuple &tuple_){
+      for (int i = 0; i < tuple_.size_left; ++i){
+        printf("%c", tuple_.left[i]);
       }
       printf(":");
-      for (unsigned i = 0; i != dupla_.right.size(); ++i){
-        printf("%i ", dupla_.size_right[i]); 
-        for (unsigned j = 0; j != dupla_.size_right[i]; ++j){
-          printf("%c", dupla_.right[i][j]);
+      for (unsigned i = 0; i != tuple_.right.size(); ++i){
+        printf("%i ", tuple_.size_right[i]); 
+        for (unsigned j = 0; j != tuple_.size_right[i]; ++j){
+          printf("%c", tuple_.right[i][j]);
         }
       }
       printf("\n");
@@ -209,74 +212,74 @@ namespace octet{
     /// This will be the whole process of lexer, and parser the LS file
     bool decode_file(){
       int size_rules;
-      dupla new_dupla;
+      tuple new_tuple;
       //Check if the first word is "redefine"
-      get_new_dupla_line(new_dupla);
-      if (left_side_is(new_dupla,"redefine",8)){
+      get_new_tuple_line(new_tuple);
+      if (left_side_is(new_tuple,"redefine",8)){
         //process redefine (TODO!!!)
-        get_new_dupla_line(new_dupla);
+        get_new_tuple_line(new_tuple);
       }
       //Process angles
-      if (left_side_is(new_dupla, "angle", 5)){
+      if (left_side_is(new_tuple, "angle", 5)){
         //process angle
-        int sizeAngles = new_dupla.right.size();
+        int sizeAngles = new_tuple.right.size();
 
         for (int i = 0; i < sizeAngles; ++i){
-          ls_angle.push_back(get_float(new_dupla.right[i], new_dupla.size_right[i]));
+          ls_angle.push_back(get_float(new_tuple.right[i], new_tuple.size_right[i]));
         }
-        get_new_dupla_line(new_dupla);
+        get_new_tuple_line(new_tuple);
       }
       //Process distances
-      if (left_side_is(new_dupla, "distance", 8)){
+      if (left_side_is(new_tuple, "distance", 8)){
         //process distance
-        int sizeDistances = new_dupla.right.size();
+        int sizeDistances = new_tuple.right.size();
         for (int i = 0; i < sizeDistances; ++i){
-          ls_distance.push_back(get_float(new_dupla.right[i], new_dupla.size_right[i]));
+          ls_distance.push_back(get_float(new_tuple.right[i], new_tuple.size_right[i]));
         }
-        get_new_dupla_line(new_dupla);
+        get_new_tuple_line(new_tuple);
       }
       //Process num iteration
-      if (left_side_is(new_dupla, "iteration", 9)){
+      if (left_side_is(new_tuple, "iteration", 9)){
         //Process num
-        ini_iteration = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
-        get_new_dupla_line(new_dupla);
+        ini_iteration = (int) get_float(new_tuple.right[0], new_tuple.size_right[0]);
+        get_new_tuple_line(new_tuple);
       }
       //Read symbols
-      if (left_side_is(new_dupla, "symbols", 7)){
+      if (left_side_is(new_tuple, "symbols", 7)){
         dynarray<char> symbol;
         symbol.resize(2);
-        int num_symbols = (int)get_float(new_dupla.right[0], new_dupla.size_right[0]);
+        int num_symbols = (int)get_float(new_tuple.right[0], new_tuple.size_right[0]);
         for (int i = 0; i < num_symbols; ++i){
-          get_new_dupla_line(new_dupla);
-          symbol[0] = new_dupla.left[0];
+          get_new_tuple_line(new_tuple);
+          symbol[0] = new_tuple.left[0];
           symbol[1] = '\0';
           alphabet[symbol.data()] = i;
         }
-        get_new_dupla_line(new_dupla);
+        get_new_tuple_line(new_tuple);
       }
       //Read initial axiom
-      if (left_side_is(new_dupla, "initial", 7)){
+      if (left_side_is(new_tuple, "initial", 7)){
         words.resize(ini_iteration+5);
         words[0].reserve(5);
-        for (int i = 0; i < new_dupla.size_right[0]; ++i){
-          words[0].push_back(new_dupla.right[0][i]);
+        for (int i = 0; i < new_tuple.size_right[0]; ++i){
+          words[0].push_back(new_tuple.right[0][i]);
         }
-        get_new_dupla_line(new_dupla);
+        get_new_tuple_line(new_tuple);
       }
       //Read number and type of rules
-      if (left_side_is(new_dupla, "rules", 5)){
-        int numInfo = new_dupla.right.size();
-        size_rules = (int) get_float(new_dupla.right[0], new_dupla.size_right[0]);
+      if (left_side_is(new_tuple, "rules", 5)){
+        int numInfo = new_tuple.right.size();
+        size_rules = (int) get_float(new_tuple.right[0], new_tuple.size_right[0]);
         for (int i = 1; i < numInfo; ++i){
           //Check what type of info i'm adding to the system, and set it up
           // { _PROB, _ITER, _CONT, _POS_CON };
-          if (new_dupla.right[i][0] == 'P'){
+          if (new_tuple.right[i][0] == 'P'){
             probability_rule = true;
           }
-          else if (new_dupla.right[i][0] == 'I'){
+          else if (new_tuple.right[i][0] == 'I'){
             iteration_rule = true;
           }
-          else if (new_dupla.right[i][0] == 'C'){
+          else if (new_tuple.right[i][0] == 'C'){
             contextual_rule = true;
           }
         }
@@ -285,13 +288,13 @@ namespace octet{
         symbol.resize(2);
         rules.resize(alphabet.get_size());
         while (size_rules > 0){
-          get_new_dupla_line(new_dupla);
+          get_new_tuple_line(new_tuple);
           --size_rules;
           //Create the rule!
           rule *new_rule = new rule;
-          copy_rule(new_rule, new_dupla);
+          copy_rule(new_rule, new_tuple);
           //Storage the rule!
-          symbol[0] = new_dupla.left[0];
+          symbol[0] = new_tuple.left[0];
           symbol[1] = '\0';
           int aux = alphabet[symbol.data()];
           rules[aux].push_back(new_rule);
@@ -329,6 +332,14 @@ namespace octet{
               }
               cur_rule = rules[value_symbol][i_rule - 1];
             }
+            else if (iteration_rule){
+              int i_rule;
+              bool rule_find = false;
+              for (i_rule = 0; i_rule < num_rules && !rule_find; ++i_rule){
+                rule_find = (rules[value_symbol][i_rule]->iteration > cur_iteration);
+              }
+              cur_rule = rules[value_symbol][i_rule - 1];
+            }
             else{
               cur_rule = rules[value_symbol][0];
             }
@@ -337,7 +348,6 @@ namespace octet{
           }
           int size_rule = cur_rule->right.size();
           if (output.capacity() - output.size() > 10000){
-            printf("what?");
             output.reserve(output.size());
             size_output = 0;
           }
@@ -362,6 +372,7 @@ namespace octet{
     ///Will generate the tree to the initial generation. The starting point is max_iteration = 0, and cur_iteration = 0, with ini_iteration the objective
     void ini_generation(){
       for (int i = 1; i <= ini_iteration; ++i){
+        cur_iteration = i;
         produce_next_word(words[i], words[i - 1]);
         if (DEBUG_LS_GEN) printf_word(i);
       }

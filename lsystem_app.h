@@ -17,6 +17,7 @@ namespace octet {
     dynarray<ref<lsystem_mesh>> lsystem_meshes;
     dynarray<ref<scene_node>> lsystem_nodes;
     ref<scene_node> floor_node;
+    char * file_name;
     bool floor_on;
     int cur_lsystem;
     //Camera stuff!
@@ -25,6 +26,10 @@ namespace octet {
   public:
     /// this is called when we construct the class before everything is initialised.
     lsystem_app(int argc, char **argv) : app(argc, argv) {
+      if (argc == 2)
+        file_name = argv[1];
+      else
+        file_name = "assets/lsystem/tree_i.ls";
     }
 
     /// this is called once OpenGL is initialized
@@ -36,7 +41,7 @@ namespace octet {
       material *green = new material(vec4(0, 0.3f, 0.1f, 1));
       mesh_box *floor = new mesh_box(vec3(4));
       floor_node = new scene_node();
-      floor_node->translate(vec3(0, -15, 0));
+      floor_node->translate(vec3(0, -0.01f, 0));
       floor_node->scale(vec3(1000, 0.01f, 1000));
       app_scene->add_child(floor_node);
       app_scene->add_mesh_instance(new mesh_instance(floor_node, floor, green));
@@ -70,7 +75,9 @@ namespace octet {
       temp_system->load_file("assets/lsystem/tree_h.ls");
       lsystems.push_back(temp_system);
       temp_system = new lsystem();
-      temp_system->load_file("assets/lsystem/tree_i.ls");
+      //It will try to load a file given from the command line, if not
+      // it will upload the tree_i from the assets folder
+      temp_system->load_file(file_name);
       lsystems.push_back(temp_system);
       lsystem_mesh *temp_mesh;
       for (int i = 0; i != 10; ++i){
@@ -180,7 +187,7 @@ namespace octet {
       else if (is_key_going_down('O')){
         lsystems[cur_lsystem]->next();
         int cur_iteration = lsystems[cur_lsystem]->get_iteration();
-        //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
         lsystem_meshes[cur_lsystem]->update_generation();
@@ -189,7 +196,7 @@ namespace octet {
       else if (is_key_going_down('L')){
         lsystems[cur_lsystem]->previous();
         int cur_iteration = lsystems[cur_lsystem]->get_iteration();
-        //printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
+        printf("Changing tree %i to iteration %i.\n", cur_lsystem, cur_iteration);
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
         lsystem_meshes[cur_lsystem]->update_generation();
@@ -295,13 +302,13 @@ namespace octet {
         lsystem_meshes[cur_lsystem]->set_leaf_mode(0);
       }
       else if (is_key_down('H') && !is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->set_leaf_mode(1);
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(3);
       }
       else if (is_key_down('G') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->set_leaf_mode(2);
       }
       else if (is_key_down('H') && is_key_down(key_ctrl)){
-        lsystem_meshes[cur_lsystem]->set_leaf_mode(3);
+        lsystem_meshes[cur_lsystem]->set_leaf_mode(1);
       }
       else if (is_key_going_down('R') && is_key_down(key_ctrl)){
         lsystem_meshes[cur_lsystem]->switch_radius_random();
@@ -322,6 +329,24 @@ namespace octet {
         lsystem_meshes[cur_lsystem]->set_iteration(cur_iteration);
         lsystem_meshes[cur_lsystem]->input_word(cur_iteration, lsystems[cur_lsystem]->get_word(), lsystems[cur_lsystem]->get_size_word());
         lsystem_meshes[cur_lsystem]->update_generation();
+      }
+      else if (is_key_down(key_down)){
+        lsystem_meshes[cur_lsystem]->modify_wind(1, -0.001f);
+      }
+      else if (is_key_down(key_up)){
+        lsystem_meshes[cur_lsystem]->modify_wind(1, 0.001f);
+      }
+      else if (is_key_down(key_left) && !is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_wind(2, -0.001f);
+      }
+      else if (is_key_down(key_right) && !is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_wind(2, 0.001f);
+      }
+      else if (is_key_down(key_left) && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_wind(0, -0.001f);
+      }
+      else if (is_key_down(key_right) && is_key_down(key_ctrl)){
+        lsystem_meshes[cur_lsystem]->modify_wind(0, 0.001f);
       }
     }
 

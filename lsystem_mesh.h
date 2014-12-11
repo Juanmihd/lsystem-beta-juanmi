@@ -6,7 +6,7 @@ namespace octet{
   namespace scene{
     enum status_ls{_NONE = -1, _TO_UPDATE = 0, _GENERATED = 1, _TO_GENERATE = 2};
     enum type_leaf{ _FLAT = -1, _POINTY = 0, _MESH = 1, _RANDOM = 2, _HUGE = 3 };
-    enum { PRECISION_CYLINDER = 5, RED_INIT = 1 };
+    enum { PRECISION_CYLINDER = 15, RED_INIT = 1 };
     class lsystem_mesh : public mesh{
 
       struct my_vertex{
@@ -59,6 +59,7 @@ namespace octet{
       float angle_random_factor;
       float radius_random_factor;
       float distance_random_factor;
+      vec3 wind_float;
       type_leaf leaf_mode;
       int cur_iteration;
       float max_depth;
@@ -92,6 +93,7 @@ namespace octet{
           num_symbols.push_back(0);
           num_leaves.push_back(0);
         }
+        wind_float = vec3(0);
         leaf_mode = _FLAT;
         visualize3D = false;
         reduction_toggle = true;
@@ -133,6 +135,7 @@ namespace octet{
         angle_random_factor = 0.2f;
         radius_random_factor = 0.2f;
         ls_generated[cur_iteration] = _NONE;
+        wind_float = vec3(0);
         generate_iteration(cur_iteration);
       }
 
@@ -143,6 +146,13 @@ namespace octet{
 
       void switch_leafs(){
         ignore_leafs = !ignore_leafs;
+        update_generation();
+      }
+
+      void modify_wind(int pos, float value){
+        if (pos < 0) pos = 0;
+        if (pos > 2) pos = 2;
+        wind_float[pos] += value;
         update_generation();
       }
 
@@ -320,14 +330,15 @@ namespace octet{
           back_stack->depth = 0;
           max_depth = 0;
           stack3d.push_back(back_stack);
-          Block *new_block;
-          Block *last_block;
-          my_vertex *new_leaf;
+          Block *new_block = 0;
+          Block *last_block = 0;
+          my_vertex *new_leaf = 0;
           //Start generation
           for (int i = 0; i < size_words[iteration]; ++i){
             vec3 translation = vec3(0, distance* (distance_random ? rand.get(1-distance_random_factor, 1+distance_random_factor) : 1), 0);
             mat4t aux_matrix;
             vec4 aux_vector;
+            mat4t wind;
             char symbol = words[iteration][i];
             //printf("\n%c:\n", symbol);
             switch (symbol){
@@ -340,13 +351,16 @@ namespace octet{
               new_block->is_leaf = false;
               new_block->pos = back_stack->pos;
               new_block->transform = back_stack->pos;
+              new_block->depth = back_stack->depth;
+              wind.loadIdentity();
+              wind.translate(wind_float*new_block->depth);
+              new_block->transform.multMatrix(wind);
               new_block->transform.translate(translation);
               new_block->radio = back_stack->radio * (radius_random ? rand.get(1-radius_random_factor, 1+radius_random_factor) : 1);
               if (reduction_toggle)
                 new_block->radio2 = back_stack->radio * r_reduction;
               else
                 new_block->radio2 = back_stack->radio;
-              new_block->depth = back_stack->depth;
               //Add new block
               blocks[iteration].push_back(new_block);
               //Update turtle3d
@@ -371,11 +385,13 @@ namespace octet{
               new_leaf = new my_vertex();
               new_leaf->pos = stack3d.back()->pos.row(3).xyz();
               //leaves.push_back(new_leaf);
-              last_block->is_leaf = true;
-              if (leaf_mode == _POINTY)
-                last_block->radio2 = 0;
-              else if (leaf_mode == _HUGE)
-                last_block->radio2 = last_block->radio * 3;
+              if (last_block != 0){
+                last_block->is_leaf = true;
+                if (leaf_mode == _POINTY)
+                  last_block->radio2 = 0;
+                else if (leaf_mode == _HUGE)
+                  last_block->radio2 = last_block->radio * 3;
+              }
               stack3d.pop_back();
               back_stack = stack3d.back();
               break;
@@ -393,11 +409,13 @@ namespace octet{
               break;
             }
           }//End for generation of blocks
-          last_block->is_leaf = true;
-          if (leaf_mode == _POINTY)
-            last_block->radio2 = 0;
-          else if (leaf_mode == _HUGE)
-            last_block->radio2 = last_block->radio * 3;
+          if (last_block != 0){
+            last_block->is_leaf = true;
+            if (leaf_mode == _POINTY)
+              last_block->radio2 = 0;
+            else if (leaf_mode == _HUGE)
+              last_block->radio2 = last_block->radio * 3;
+          }
           //printf("Generated %i new blocks for tree\n", blocks[iteration].size());
         }//End else generate new set of blocks
 
@@ -478,7 +496,9 @@ namespace octet{
               pos_c = block_->pos.rmul(pos_c);
               pos_c2 = block_->transform.rmul(pos_c2);
               //Obtain both sides of the cylinder
-              vtx->pos = pos_1.xyz() + pos_c.xyz();
+              vec3 temp = pos_1.xyz() + pos_c.xyz();
+              if (temp[1] < 0) temp[1] = 0;
+              vtx->pos = temp;
               if (block_->is_leaf)
                 vtx->color = make_color(0.1f, 1.0f, 0.1f);
               else if (!reduction_toggle)
@@ -486,7 +506,9 @@ namespace octet{
               else
                 vtx->color = make_color(r, g, b);
               vtx++;
-              vtx->pos = pos_2.xyz() + pos_c2.xyz();
+              temp = pos_2.xyz() + pos_c2.xyz();
+              if (temp[1] < 0) temp[1] = 0;
+              vtx->pos = temp;
               if (block_->is_leaf)
                 vtx->color = make_color(0.1f, 8.1f, 0.1f);
               else
